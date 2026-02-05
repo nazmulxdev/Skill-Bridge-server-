@@ -1,12 +1,11 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../../generated/prisma"
+    provider = "prisma-client"
+    output   = "../../generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+    provider = "postgresql"
 }
-
 
 // auth schema
 
@@ -81,8 +80,6 @@ model Verification {
     @@map("verification")
 }
 
-
-
 // bookings schema
 
 model Bookings {
@@ -90,19 +87,21 @@ model Bookings {
     studentId      String
     tutorProfileId String
     subjectId      String
-    student        User   @relation(fields: [studentId], references: [id])
+    timeSlotId     String @unique
+
+    student User @relation(fields: [studentId], references: [id])
 
     tutorProfile TutorProfile @relation(fields: [tutorProfileId], references: [id])
 
     subject Subjects @relation(fields: [subjectId], references: [id])
+
+    timeSlot TutorTimeSlot @relation(fields: [timeSlotId], references: [id])
 
     status BookingStatus @default(PENDING)
 
     createdAt DateTime @default(now())
     review    Review?
 }
-
-
 
 // tutor's schema
 
@@ -119,10 +118,12 @@ model TutorProfile {
 
     subjects TutorSubject[]
 
-    createdAt      DateTime       @default(now())
+    createdAt      DateTime        @default(now())
     bookings       Bookings[]
     reviews        Review[]
     availabilities Availability[]
+    education      Education[]
+    tutorTimeSlots TutorTimeSlot[]
 }
 
 model TutorSubject {
@@ -146,6 +147,35 @@ model Availability {
     @@index([tutorProfileId])
 }
 
+model Education {
+    id             String       @id @default(uuid())
+    tutorProfileId String
+    institute      String
+    degree         String
+    fieldOfStudy   String
+    startYear      Int
+    endYear        Int?
+    isCurrent      Boolean      @default(false)
+    tutorProfile   TutorProfile @relation(fields: [tutorProfileId], references: [id], onDelete: Cascade)
+
+    @@index([tutorProfileId])
+}
+
+model TutorTimeSlot {
+    id             String       @id @default(uuid())
+    tutorProfileId String
+    date           DateTime
+    startTime      String
+    endTime        String
+    isBooked       Boolean      @default(false)
+    tutorProfile   TutorProfile @relation(fields: [tutorProfileId], references: [id], onDelete: Cascade)
+    bookings       Bookings?
+
+    createdAt DateTime @default(now())
+
+    @@unique([tutorProfileId, date, startTime])
+    @@index([tutorProfileId, date])
+}
 
 // category schema
 
@@ -170,7 +200,6 @@ model Subjects {
     @@unique([name, category_id])
 }
 
-
 // review schema 
 
 model Review {
@@ -187,11 +216,6 @@ model Review {
     createdAt DateTime @default(now())
 }
 
-
-
-
-
-
 enum DayOfWeek {
     SUNDAY
     MONDAY
@@ -202,15 +226,12 @@ enum DayOfWeek {
     SATURDAY
 }
 
-
-
 enum BookingStatus {
     PENDING
     CONFIRM
     CANCELLED
     COMPLETE
 }
-
 
 enum Role {
     STUDENT

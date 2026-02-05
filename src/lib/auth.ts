@@ -9,4 +9,18 @@ export const auth = betterAuth({
   }),
   secret: config.better_auth_secret,
   baseURL: config.better_auth_url,
+  emailAndPassword: {
+    enabled: true,
+    autoSignIn: false,
+  },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+      },
+      status: {
+        type: "string",
+      },
+    },
+  },
 });
