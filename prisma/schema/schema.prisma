@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+// auth schema
+
+model User {
+    id            String   @id
+    name          String
+    email         String
+    emailVerified Boolean  @default(false)
+    image         String?
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+
+    role Role @default(STUDENT)
+
+    status UserStatus @default(UNBANNED)
+
+    sessions      Session[]
+    accounts      Account[]
+    tutorProfiles TutorProfile?
+    bookings      Bookings[]
+    reviews       Review[]
+
+    @@unique([email])
+    @@map("user")
+}
+
+model Session {
+    id        String   @id
+    expiresAt DateTime
+    token     String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    ipAddress String?
+    userAgent String?
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([token])
+    @@index([userId])
+    @@map("session")
+}
+
+model Account {
+    id                    String    @id
+    accountId             String
+    providerId            String
+    userId                String
+    user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    accessToken           String?
+    refreshToken          String?
+    idToken               String?
+    accessTokenExpiresAt  DateTime?
+    refreshTokenExpiresAt DateTime?
+    scope                 String?
+    password              String?
+    createdAt             DateTime  @default(now())
+    updatedAt             DateTime  @updatedAt
+
+    @@index([userId])
+    @@map("account")
+}
+
+model Verification {
+    id         String   @id
+    identifier String
+    value      String
+    expiresAt  DateTime
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    @@index([identifier])
+    @@map("verification")
+}
+
+
+
+// bookings schema
+
+model Bookings {
+    id             String @id @default(uuid())
+    studentId      String
+    tutorProfileId String
+    subjectId      String
+    student        User   @relation(fields: [studentId], references: [id])
+
+    tutorProfile TutorProfile @relation(fields: [tutorProfileId], references: [id])
+
+    subject Subjects @relation(fields: [subjectId], references: [id])
+
+    status BookingStatus @default(PENDING)
+
+    createdAt DateTime @default(now())
+    review    Review?
+}
+
+
+
+// tutor's schema
+
+model TutorProfile {
+    id String @id @default(uuid())
+
+    userId String @unique
+
+    hourlyRate Float
+
+    isFeatured Boolean @default(false)
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    subjects TutorSubject[]
+
+    createdAt      DateTime       @default(now())
+    bookings       Bookings[]
+    reviews        Review[]
+    availabilities Availability[]
+}
+
+model TutorSubject {
+    id              String       @id @default(uuid())
+    subjectId       String
+    subject         Subjects     @relation(fields: [subjectId], references: [id])
+    tutor_profileId String
+    tutorProfile    TutorProfile @relation(fields: [tutor_profileId], references: [id])
+
+    @@unique([tutor_profileId, subjectId])
+}
+
+model Availability {
+    id             String       @id @default(uuid())
+    tutorProfileId String
+    dayOfWeek      DayOfWeek
+    startTime      String
+    endTime        String
+    tutorProfile   TutorProfile @relation(fields: [tutorProfileId], references: [id])
+
+    @@index([tutorProfileId])
+}
+
+
+// category schema
+
+model Categories {
+    id          String     @id @default(uuid())
+    name        String     @unique @db.VarChar(225)
+    description String     @db.Text
+    createdAt   DateTime   @default(now())
+    subjects    Subjects[]
+}
+
+model Subjects {
+    id          String     @id @default(uuid())
+    name        String     @db.VarChar(225)
+    category_id String
+    category    Categories @relation(fields: [category_id], references: [id])
+
+    createdAt     DateTime       @default(now())
+    tutorSubjects TutorSubject[]
+    bookings      Bookings[]
+
+    @@unique([name, category_id])
+}
+
+
+// review schema 
+
+model Review {
+    id             String       @id @default(ulid())
+    bookingId      String       @unique
+    studentId      String
+    tutorProfileId String
+    rating         Decimal
+    comment        String?
+    booking        Bookings     @relation(fields: [bookingId], references: [id])
+    student        User         @relation(fields: [studentId], references: [id])
+    tutorProfile   TutorProfile @relation(fields: [tutorProfileId], references: [id])
+
+    createdAt DateTime @default(now())
+}
+
+
+
+
+
+
+enum DayOfWeek {
+    SUNDAY
+    MONDAY
+    TUESDAY
+    WEDNESDAY
+    THURSDAY
+    FRIDAY
+    SATURDAY
+}
+
+
+
+enum BookingStatus {
+    PENDING
+    CONFIRM
+    CANCELLED
+    COMPLETE
+}
+
+
+enum Role {
+    STUDENT
+    TUTOR
+    ADMIN
+}
+
+enum UserStatus {
+    BANNED
+    UNBANNED
+}
