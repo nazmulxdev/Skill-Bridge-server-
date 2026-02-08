@@ -76,8 +76,33 @@ const updateSubjectName = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// delete subject
+
+const deleteSubject = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (typeof id !== "string") {
+    throw new AppError(400, "Subject Id type error", "Error id type", [
+      {
+        field: "Delete Subject",
+        message: "Please give valid type  subject id.",
+      },
+    ]);
+  }
+
+  const result = await subjectsService.deleteSubject(id);
+
+  console.log(result);
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Subject deleted successfully.",
+    data: result,
+  });
+});
+
 export const subjectController = {
   addSubject,
   getAllSubjects,
   updateSubjectName,
+  deleteSubject,
 };

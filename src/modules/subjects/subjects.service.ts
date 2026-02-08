@@ -189,8 +189,53 @@ const updateSubject = async (id: string, name: string) => {
   return updateSubject;
 };
 
+// delete subject
+
+const deleteSubject = async (id: string) => {
+  if (!id) {
+    throw new AppError(400, "Subject id is required.", "Missing_Subject_Id", [
+      {
+        field: "Delete Subject",
+        message: "Please provide subject id.",
+      },
+    ]);
+  }
+
+  const isExistSubject = await prisma.subjects.findUnique({
+    where: {
+      id: id,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!isExistSubject) {
+    throw new AppError(
+      400,
+      "No subject found in this id.",
+      "Invalid_Subject_id",
+      [
+        {
+          field: "Delete Subject.",
+          message: "Please give valid subject id.",
+        },
+      ],
+    );
+  }
+
+  const result = await prisma.subjects.delete({
+    where: {
+      id: id,
+    },
+  });
+
+  return result;
+};
+
 export const subjectsService = {
   addSubject,
   getAllSubjects,
   updateSubject,
+  deleteSubject,
 };
