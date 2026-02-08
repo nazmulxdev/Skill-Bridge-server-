@@ -69,8 +69,33 @@ const updateCategory = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// delete category
+
+const deleteCategory = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (typeof id !== "string") {
+    throw new AppError(400, "Category Id type error", "Error id type", [
+      {
+        field: "Update category",
+        message: "Please give valid type  category id.",
+      },
+    ]);
+  }
+
+  const result = await categoryService.deleteCategory(id);
+
+  console.log(result);
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Category deleted successfully.",
+    data: result,
+  });
+});
+
 export const categoryController = {
   createCategory,
   updateCategory,
   getAllCategory,
+  deleteCategory,
 };

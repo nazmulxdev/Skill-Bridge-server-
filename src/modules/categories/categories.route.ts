@@ -14,4 +14,10 @@ router.patch(
   categoryController.updateCategory,
 );
 
+router.delete(
+  "/:id",
+  authMiddleware("ADMIN"),
+  categoryController.deleteCategory,
+);
+
 export const categoryRoutes = router;
