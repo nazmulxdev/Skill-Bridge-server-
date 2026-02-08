@@ -177,7 +177,7 @@ model TutorTimeSlot {
     @@index([tutorProfileId, date])
 }
 
-// category schema
+// category schema (done)
 
 model Categories {
     id          String     @id @default(uuid())
@@ -186,6 +186,8 @@ model Categories {
     createdAt   DateTime   @default(now())
     subjects    Subjects[]
 }
+
+// subject schema (done)
 
 model Subjects {
     id          String     @id @default(uuid())

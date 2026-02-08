@@ -7,7 +7,6 @@ import { config } from "./config";
 import { tutorRoutes } from "./modules/tutor/tutor.route";
 import notFoundError from "./middlewares/notFoundError";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
-import catchAsync from "./utils/catchAsync";
 import { adminRoutes } from "./modules/admin/admin.route";
 import { categoryRoutes } from "./modules/categories/categories.route";
 import { subjectsRoutes } from "./modules/subjects/subjects.route";
@@ -49,6 +48,10 @@ app.use("/api/categories", categoryRoutes);
 // subject api
 
 app.use("/api/subjects", subjectsRoutes);
+
+// admin api
+
+app.use("/api/admin", adminRoutes);
 
 // 404 handler
 app.use(notFoundError);
