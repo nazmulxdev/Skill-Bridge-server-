@@ -10,6 +10,7 @@ import globalErrorHandler from "./middlewares/globalErrorHandler";
 import catchAsync from "./utils/catchAsync";
 import { adminRoutes } from "./modules/admin/admin.route";
 import { categoryRoutes } from "./modules/categories/categories.route";
+import { subjectsRoutes } from "./modules/subjects/subjects.route";
 
 const app = express();
 app.use(express.json());
@@ -44,6 +45,10 @@ app.get("/", (req: Request, res: Response) => {
 // category api
 
 app.use("/api/categories", categoryRoutes);
+
+// subject api
+
+app.use("/api/subjects", subjectsRoutes);
 
 // 404 handler
 app.use(notFoundError);
