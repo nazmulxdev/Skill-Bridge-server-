@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import AppResponse from "../../utils/AppResponse";
 import AppError from "../../utils/AppErrors";
+import catchAsync from "../../utils/catchAsync";
+
+// getting all tutors
 
 const getAllTutor = async (req: Request, res: Response) => {
   throw new AppError(400, "Please give valid Error", "USER_NOT_FOUND", [

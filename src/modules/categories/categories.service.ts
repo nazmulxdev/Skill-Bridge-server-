@@ -1,7 +1,18 @@
-// create category
-
 import { prisma } from "../../lib/prisma";
+
 import AppError from "../../utils/AppErrors";
+
+// getting all category
+
+const getAllCategory = async () => {
+  const result = await prisma.categories.findMany({
+    include: {
+      subjects: true,
+    },
+  });
+  console.log(result);
+  return result;
+};
 
 // create category
 
@@ -115,7 +126,8 @@ const updateCategory = async (
   return updateCategory;
 };
 
-export const adminService = {
+export const categoryService = {
+  getAllCategory,
   createCategory,
   updateCategory,
 };

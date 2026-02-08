@@ -4,8 +4,21 @@ import { Request, Response } from "express";
 import catchAsync from "../../utils/catchAsync";
 import { Role } from "../../../generated/prisma/enums";
 import AppError from "../../utils/AppErrors";
-import { adminService } from "./admin.service";
 import AppResponse from "../../utils/AppResponse";
+import { categoryService } from "./categories.service";
+
+// get all category
+
+const getAllCategory = catchAsync(async (req: Request, res: Response) => {
+  const result = await categoryService.getAllCategory();
+  console.log(result);
+  return AppResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Category created successfully.",
+    data: result,
+  });
+});
 
 // create category
 
@@ -22,9 +35,9 @@ const createCategory = catchAsync(async (req: Request, res: Response) => {
     ]);
   }
 
-  const result = await adminService.createCategory({ name, description });
+  const result = await categoryService.createCategory({ name, description });
   console.log(result);
-  AppResponse(res, {
+  return AppResponse(res, {
     statusCode: 201,
     success: true,
     message: "Category created successfully.",
@@ -32,6 +45,7 @@ const createCategory = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// update category
 const updateCategory = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -44,10 +58,10 @@ const updateCategory = catchAsync(async (req: Request, res: Response) => {
     ]);
   }
 
-  const result = await adminService.updateCategory(id, req.body);
+  const result = await categoryService.updateCategory(id, req.body);
 
   console.log(result);
-  AppResponse(res, {
+  return AppResponse(res, {
     statusCode: 200,
     success: true,
     message: "Category updated successfully.",
@@ -55,7 +69,8 @@ const updateCategory = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const adminController = {
+export const categoryController = {
   createCategory,
   updateCategory,
+  getAllCategory,
 };
