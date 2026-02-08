@@ -8,6 +8,7 @@ import { tutorRoutes } from "./modules/tutor/tutor.route";
 import notFoundError from "./middlewares/notFoundError";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import catchAsync from "./utils/catchAsync";
+import { adminRoutes } from "./modules/admin/admin.route";
 
 const app = express();
 app.use(express.json());
@@ -38,6 +39,10 @@ app.use("/api/tutors", tutorRoutes);
 app.get("/", (req: Request, res: Response) => {
   res.send("Welcome to prisma land. Have a great journey with prisma.");
 });
+
+// category api
+
+app.use("/api/categories", adminRoutes);
 
 // 404 handler
 app.use(notFoundError);

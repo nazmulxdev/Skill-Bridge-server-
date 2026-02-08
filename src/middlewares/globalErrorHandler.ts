@@ -1,9 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { Prisma } from "../../generated/prisma/client";
 import { ZodError } from "zod";
-import AppError from "../utils/appErrors";
+
 import AppErrorResponse from "../utils/AppErrorResponse";
 import { config } from "../config";
+import AppError from "../utils/AppErrors";
 
 const globalErrorHandler = (
   error: unknown,
