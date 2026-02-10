@@ -411,6 +411,62 @@ const deleteEducation = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// add availability
+
+const addAvailability = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const { dayOfWeek, startTime, endTime } = req.body;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Tutor Education.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Tutor Education.",
+          message: "Only tutor role can update education.",
+        },
+      ],
+    );
+  }
+
+  if (!dayOfWeek || !startTime || !endTime) {
+    throw new AppError(
+      400,
+      "Missing required fields",
+      "Invalid_Availability_Data",
+      [
+        {
+          field: "Availability",
+          message: "dayOfWeek, startTime, endTime are required",
+        },
+      ],
+    );
+  }
+
+  const result = await tutorService.addAvailability(userId, {
+    dayOfWeek,
+    startTime,
+    endTime,
+  });
+  return AppResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Availability added successfully",
+    data: result,
+  });
+});
 export const tutorController = {
   createTutorProfile,
   updateHourlyRate,
@@ -419,4 +475,5 @@ export const tutorController = {
   addEducation,
   updateEducation,
   deleteEducation,
+  addAvailability,
 };

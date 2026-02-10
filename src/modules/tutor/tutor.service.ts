@@ -1,6 +1,6 @@
 // create tutor profile
 
-import { BookingStatus } from "../../../generated/prisma/enums";
+import { BookingStatus, DayOfWeek } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../utils/AppErrors";
 
@@ -21,6 +21,33 @@ export interface UpdateEducation {
   isCurrent?: boolean;
 }
 
+export interface AvailabilityPayload {
+  dayOfWeek: DayOfWeek;
+  startTime: string;
+  endTime: string;
+}
+
+export const isValidTimeFormat = (time: string): boolean => {
+  // 24-hour format
+  const regex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+  return regex.test(time);
+};
+
+export const isValidTimeRange = (
+  startTime: string,
+  endTime: string,
+): boolean => {
+  const start = new Date(`1970-01-01T${startTime}:00`);
+  const end = new Date(`1970-01-01T${endTime}:00`);
+
+  if (!isValidTimeFormat(startTime) || !isValidTimeFormat(endTime)) {
+    return false;
+  }
+
+  return start < end;
+};
+
+// creating tutor profile
 const createTutorProfile = async (payload: {
   userId: string;
   hourlyRate: number;
@@ -476,6 +503,57 @@ const deleteEducation = async (userId: string, educationId: string) => {
   return result;
 };
 
+// tutor availability
+const addAvailability = async (
+  userId: string,
+  payload: AvailabilityPayload,
+) => {
+  if (!isValidTimeRange(payload.startTime, payload.endTime)) {
+    throw new AppError(
+      400,
+      "Invalid time format or range",
+      "Invalid_Time_Range",
+      [
+        {
+          field: "time",
+          message:
+            "Time must be in HH:mm format (e.g. 10:00) and startTime must be earlier than endTime",
+        },
+      ],
+    );
+  }
+
+  const tutorProfile = await prisma.tutorProfile.findUnique({
+    where: {
+      userId: userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!tutorProfile) {
+    throw new AppError(
+      404,
+      "Tutor profile not found",
+      "Tutor_Profile_Not_Found",
+      [
+        {
+          field: "Tutor Availability",
+          message: "Please user tutor profile to add availabilities.",
+        },
+      ],
+    );
+  }
+
+  const result = await prisma.availability.create({
+    data: {
+      tutorProfileId: tutorProfile.id,
+      ...payload,
+    },
+  });
+  return result;
+};
 export const tutorService = {
   createTutorProfile,
   updateTutorHourlyRate,
@@ -484,4 +562,5 @@ export const tutorService = {
   addEducation,
   updateEducation,
   deleteEducation,
+  addAvailability,
 };
