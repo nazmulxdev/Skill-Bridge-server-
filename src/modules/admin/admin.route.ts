@@ -4,8 +4,18 @@ import { adminController } from "./admin.controller";
 
 const router = Router();
 
-router.get("/users", authMiddleware("ADMIN"), adminController.getAllUser);
+router.get(
+  "/users",
+  authMiddleware("ADMIN", "TUTOR"),
+  adminController.getAllUser,
+);
 
 router.patch("/users/:id", authMiddleware("ADMIN"), adminController.updateUser);
+
+router.patch(
+  "/tutors/:id/feature",
+  authMiddleware("ADMIN", "TUTOR"),
+  adminController.featureTutor,
+);
 
 export const adminRoutes = router;

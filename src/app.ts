@@ -37,10 +37,6 @@ app.all(
 
 app.use("/api/tutors", tutorRoutes);
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Welcome to prisma land. Have a great journey with prisma.");
-});
-
 // category api
 
 app.use("/api/categories", categoryRoutes);

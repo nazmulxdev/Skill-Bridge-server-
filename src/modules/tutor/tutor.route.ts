@@ -1,14 +1,15 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
 import authMiddleware from "../../middlewares/authMiddleware";
-import catchAsync from "../../utils/catchAsync";
 import { tutorController } from "./tutor.controller";
 
 const router = Router();
 
-router.get(
-  "/",
+router.post("/", authMiddleware("TUTOR"), tutorController.createTutorProfile);
+
+router.patch(
+  "/update/hourly_rate",
   authMiddleware("TUTOR"),
-  catchAsync(tutorController.getAllTutor),
+  tutorController.updateHourlyRate,
 );
 
 export const tutorRoutes = router;

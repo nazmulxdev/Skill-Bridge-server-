@@ -46,7 +46,44 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// update feature tutor
+
+const featureTutor = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { isFeatured } = req.body;
+
+  if (typeof id !== "string") {
+    throw new AppError(400, "Tutor id types error", "Invalid_Tutor_id", [
+      {
+        field: "Feature Tutor.",
+        message: "Please give valid type of Tutor id.",
+      },
+    ]);
+  }
+
+  if (typeof isFeatured !== "boolean") {
+    throw new AppError(400, "Invalid feature flag", "Invalid_isFeatured", [
+      {
+        field: "Feature Tutor",
+        message: "isFeatured must be a boolean value.",
+      },
+    ]);
+  }
+
+  const result = await adminService.featureTutor(id, isFeatured);
+
+  console.log(result);
+
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Updated feature tutor status successfully.",
+    data: result,
+  });
+});
+
 export const adminController = {
   updateUser,
   getAllUser,
+  featureTutor,
 };

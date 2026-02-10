@@ -9,7 +9,14 @@ import AppError from "../../utils/AppErrors";
 const getAllUser = async () => {
   const result = await prisma.user.findMany({
     include: {
-      tutorProfiles: true,
+      tutorProfiles: {
+        include: {
+          education: true,
+          availabilities: true,
+          tutorTimeSlots: true,
+          subjects: true,
+        },
+      },
       bookings: true,
       reviews: true,
     },
@@ -79,7 +86,60 @@ const updateUserStatus = async (id: string, status: UserStatus) => {
   return result;
 };
 
+// update tutor feature
+
+const featureTutor = async (id: string, isFeatured: boolean) => {
+  if (!id) {
+    throw new AppError(
+      400,
+      "User id is required to update feature tutor.",
+      "Missing tutor id",
+      [
+        {
+          field: "Update User status",
+          message: "Please give User id.",
+        },
+      ],
+    );
+  }
+
+  const isExistUser = await prisma.tutorProfile.findUnique({
+    where: {
+      id: id,
+    },
+    select: {
+      isFeatured: true,
+    },
+  });
+
+  if (!isExistUser) {
+    throw new AppError(
+      404,
+      "No tutor profile found with this id.",
+      "Invalid_User_Id",
+      [
+        {
+          field: "Update User Status",
+          message: "Please provide a valid user id.",
+        },
+      ],
+    );
+  }
+
+  const result = await prisma.tutorProfile.update({
+    where: {
+      id: id,
+    },
+    data: {
+      isFeatured: isFeatured,
+    },
+  });
+
+  return result;
+};
+
 export const adminService = {
   updateUserStatus,
   getAllUser,
+  featureTutor,
 };
