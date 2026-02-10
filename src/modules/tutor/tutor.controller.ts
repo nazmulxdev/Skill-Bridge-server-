@@ -6,21 +6,6 @@ import { Role } from "../../../generated/prisma/enums";
 import { tutorService } from "./tutor.service";
 import { Education } from "../../../generated/prisma/client";
 
-// getting all tutors
-
-// const getAllTutor = async (req: Request, res: Response) => {
-//   throw new AppError(400, "Please give valid Error", "USER_NOT_FOUND", [
-//     { field: "email", message: "Email is not valid" },
-//   ]);
-//   AppResponse(res, {
-//     success: true,
-//     statusCode: 200,
-//     message: "This is from get all tutor route.",
-//   });
-// };
-
-// create tutor profile (hourly rate)
-
 const createTutorProfile = catchAsync(async (req: Request, res: Response) => {
   const userId = req?.user?.id;
   const role = req?.user?.role;
@@ -578,6 +563,63 @@ const deleteAvailability = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// creating tutor time slot
+
+const createTutorTimeSlot = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const { date, startTime, endTime } = req.body;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Tutor Time Slot.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Tutor time slot.",
+          message: "Only tutor role can add education.",
+        },
+      ],
+    );
+  }
+
+  if (!date || !startTime || !endTime) {
+    throw new AppError(
+      400,
+      "Missing required fields",
+      "Invalid_TimeSlot_Data",
+      [
+        {
+          field: "Tutor Time slot",
+          message: "Date, start time, end time  are required.",
+        },
+      ],
+    );
+  }
+  const result = await tutorService.createTutorTimeSlot(userId, {
+    date,
+    startTime,
+    endTime,
+  });
+
+  return AppResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Time slot created successfully",
+    data: result,
+  });
+});
+
 export const tutorController = {
   createTutorProfile,
   updateHourlyRate,
@@ -589,4 +631,5 @@ export const tutorController = {
   addAvailability,
   updateAvailability,
   deleteAvailability,
+  createTutorTimeSlot,
 };

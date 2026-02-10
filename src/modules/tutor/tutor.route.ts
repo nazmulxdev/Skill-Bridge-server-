@@ -59,4 +59,10 @@ router.delete(
   tutorController.deleteAvailability,
 );
 
+router.post(
+  "/time-slot",
+  authMiddleware("TUTOR"),
+  tutorController.createTutorTimeSlot,
+);
+
 export const tutorRoutes = router;
