@@ -83,19 +83,20 @@ model Verification {
 // bookings schema
 
 model Bookings {
-    id             String @id @default(uuid())
+    id             String  @id @default(uuid())
     studentId      String
     tutorProfileId String
     subjectId      String
-    timeSlotId     String @unique
+    timeSlotId     String  @unique
+    booking_price  Decimal
 
-    student User @relation(fields: [studentId], references: [id])
+    student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-    tutorProfile TutorProfile @relation(fields: [tutorProfileId], references: [id])
+    tutorProfile TutorProfile @relation(fields: [tutorProfileId], references: [id], onDelete: Cascade)
 
-    subject Subjects @relation(fields: [subjectId], references: [id])
+    subject Subjects @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 
-    timeSlot TutorTimeSlot @relation(fields: [timeSlotId], references: [id])
+    timeSlot TutorTimeSlot @relation(fields: [timeSlotId], references: [id], onDelete: Cascade)
 
     status BookingStatus @default(PENDING)
 
@@ -129,9 +130,9 @@ model TutorProfile {
 model TutorSubject {
     id              String       @id @default(uuid())
     subjectId       String
-    subject         Subjects     @relation(fields: [subjectId], references: [id])
+    subject         Subjects     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
     tutor_profileId String
-    tutorProfile    TutorProfile @relation(fields: [tutor_profileId], references: [id])
+    tutorProfile    TutorProfile @relation(fields: [tutor_profileId], references: [id], onDelete: Cascade)
 
     @@unique([tutor_profileId, subjectId])
 }
@@ -142,7 +143,7 @@ model Availability {
     dayOfWeek      DayOfWeek
     startTime      String
     endTime        String
-    tutorProfile   TutorProfile @relation(fields: [tutorProfileId], references: [id])
+    tutorProfile   TutorProfile @relation(fields: [tutorProfileId], references: [id], onDelete: Cascade)
 
     @@index([tutorProfileId])
 }
@@ -193,7 +194,7 @@ model Subjects {
     id          String     @id @default(uuid())
     name        String     @db.VarChar(225)
     category_id String
-    category    Categories @relation(fields: [category_id], references: [id])
+    category    Categories @relation(fields: [category_id], references: [id], onDelete: Cascade)
 
     createdAt     DateTime       @default(now())
     tutorSubjects TutorSubject[]
@@ -211,9 +212,9 @@ model Review {
     tutorProfileId String
     rating         Decimal
     comment        String?
-    booking        Bookings     @relation(fields: [bookingId], references: [id])
-    student        User         @relation(fields: [studentId], references: [id])
-    tutorProfile   TutorProfile @relation(fields: [tutorProfileId], references: [id])
+    booking        Bookings     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+    student        User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+    tutorProfile   TutorProfile @relation(fields: [tutorProfileId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
 }

@@ -14,7 +14,15 @@ const getAllUser = async () => {
           education: true,
           availabilities: true,
           tutorTimeSlots: true,
-          subjects: true,
+          subjects: {
+            include: {
+              subject: {
+                include: {
+                  category: true,
+                },
+              },
+            },
+          },
         },
       },
       bookings: true,

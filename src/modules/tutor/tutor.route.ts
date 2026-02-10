@@ -12,4 +12,10 @@ router.patch(
   tutorController.updateHourlyRate,
 );
 
+router.post(
+  "/subjects",
+  authMiddleware("TUTOR"),
+  tutorController.addTutorSubjects,
+);
+
 export const tutorRoutes = router;

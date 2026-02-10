@@ -134,7 +134,62 @@ const updateHourlyRate = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+//  adding tutor subject
+
+const addTutorSubjects = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const { subjects } = req.body;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Tutor subjects addition.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Tutor Subjects.",
+          message: "Only tutor role can add subjects in their table.",
+        },
+      ],
+    );
+  }
+
+  if (!Array.isArray(subjects) || subjects.length === 0) {
+    throw new AppError(
+      400,
+      "Subject ids must be a non-empty array.",
+      "Invalid_Subject_List",
+      [],
+    );
+  }
+
+  const subjectIds = subjects.map((sub) => sub.subjectId);
+  const uniqueId = [...new Set(subjectIds)];
+
+  const result = await tutorService.addTutorSubjects(userId, uniqueId);
+
+  console.log(result);
+
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Subject added successfully.",
+    data: result,
+  });
+});
+
 export const tutorController = {
   createTutorProfile,
   updateHourlyRate,
+  addTutorSubjects,
 };

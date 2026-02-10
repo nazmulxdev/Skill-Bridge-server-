@@ -136,7 +136,95 @@ const updateTutorHourlyRate = async (payload: {
   return result;
 };
 
+// add subject in tutor subject
+
+const addTutorSubjects = async (userId: string, subjectIds: string[]) => {
+  const tutorProfile = await prisma.tutorProfile.findUnique({
+    where: {
+      userId: userId,
+    },
+  });
+
+  if (!tutorProfile) {
+    throw new AppError(
+      404,
+      "Tutor profile not found",
+      "Missing_tutor_profile",
+      [
+        {
+          field: "Add tutor subject",
+          message: "Please use authorized tutor id.",
+        },
+      ],
+    );
+  }
+
+  console.log(tutorProfile);
+
+  const validSubjects = await prisma.subjects.findMany({
+    where: { id: { in: subjectIds } },
+    select: {
+      id: true,
+    },
+  });
+
+  const validSubjectIds = validSubjects.map((sub) => sub.id);
+
+  const invalidSubjectIds = subjectIds.filter(
+    (id) => !validSubjectIds.includes(id),
+  );
+
+  if (invalidSubjectIds.length > 0) {
+    throw new AppError(
+      400,
+      "Some subject ids are invalid.",
+      "Invalid_Subject_Id",
+      invalidSubjectIds.map((id) => ({
+        field: "subjectId",
+        message: `Invalid subject id: ${id}`,
+      })),
+    );
+  }
+
+  const existingSubjects = await prisma.tutorSubject.findMany({
+    where: {
+      tutor_profileId: tutorProfile.id,
+      subjectId: { in: validSubjectIds },
+    },
+    select: {
+      subjectId: true,
+    },
+  });
+  const existingIds = existingSubjects.map((e) => e.subjectId);
+
+  const newSubjectIds = validSubjectIds.filter(
+    (id) => !existingIds.includes(id),
+  );
+
+  if (newSubjectIds.length === 0) {
+    throw new AppError(
+      409,
+      "All subjects already added.",
+      "Duplicate_Tutor_Subject",
+      existingIds.map((id) => ({
+        field: "subjectId",
+        message: `Subject already added: ${id}`,
+      })),
+    );
+  }
+  const result = await prisma.tutorSubject.createMany({
+    data: newSubjectIds.map((subjectId) => ({
+      tutor_profileId: tutorProfile.id,
+      subjectId,
+    })),
+    skipDuplicates: true,
+  });
+
+  return result;
+};
+
 export const tutorService = {
   createTutorProfile,
   updateTutorHourlyRate,
+  addTutorSubjects,
 };
