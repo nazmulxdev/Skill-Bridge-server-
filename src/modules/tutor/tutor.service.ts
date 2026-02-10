@@ -4,6 +4,15 @@ import { BookingStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../utils/AppErrors";
 
+export interface Education {
+  institute: string;
+  degree: string;
+  fieldOfStudy: string;
+  startYear: number;
+  endYear?: number | null;
+  isCurrent?: boolean;
+}
+
 const createTutorProfile = async (payload: {
   userId: string;
   hourlyRate: number;
@@ -301,9 +310,48 @@ const removeSubject = async (userId: string, subjectId: string) => {
   return result;
 };
 
+// adding tutor education
+
+const addEducation = async (userId: string, payload: Education) => {
+  const tutorProfile = await prisma.tutorProfile.findUnique({
+    where: {
+      userId: userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!tutorProfile) {
+    throw new AppError(
+      404,
+      "Tutor profile not found",
+      "Tutor_Profile_Not_Found",
+      [
+        {
+          field: "Tutor education",
+          message: "Please user tutor profile add education.",
+        },
+      ],
+    );
+  }
+
+  const result = await prisma.education.create({
+    data: {
+      tutorProfileId: tutorProfile.id,
+      ...payload,
+    },
+  });
+
+  return result;
+};
+
+//
+
 export const tutorService = {
   createTutorProfile,
   updateTutorHourlyRate,
   addTutorSubjects,
   removeSubject,
+  addEducation,
 };

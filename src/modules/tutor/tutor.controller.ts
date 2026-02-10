@@ -4,6 +4,7 @@ import AppError from "../../utils/AppErrors";
 import catchAsync from "../../utils/catchAsync";
 import { Role } from "../../../generated/prisma/enums";
 import { tutorService } from "./tutor.service";
+import { Education } from "../../../generated/prisma/client";
 
 // getting all tutors
 
@@ -237,9 +238,73 @@ const removeTutorSubject = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// adding education of tutor
+
+const addEducation = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const { institute, degree, fieldOfStudy, startYear, endYear, isCurrent } =
+    req.body as Education;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Tutor Education.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Tutor Education.",
+          message: "Only tutor role can add education.",
+        },
+      ],
+    );
+  }
+
+  if (!institute || !degree || !fieldOfStudy || !startYear) {
+    throw new AppError(
+      400,
+      "Missing required fields",
+      "Invalid_Education_Data",
+      [
+        {
+          field: "Tutor Education",
+          message:
+            "institute, degree, fieldOfStudy, and startYear are required.",
+        },
+      ],
+    );
+  }
+
+  const result = await tutorService.addEducation(userId, {
+    institute,
+    degree,
+    fieldOfStudy,
+    startYear,
+    endYear,
+    isCurrent: !!isCurrent,
+  });
+
+  return AppResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Education added successfully",
+    data: result,
+  });
+});
+
 export const tutorController = {
   createTutorProfile,
   updateHourlyRate,
   addTutorSubjects,
   removeTutorSubject,
+  addEducation,
 };

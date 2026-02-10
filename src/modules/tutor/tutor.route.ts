@@ -24,4 +24,10 @@ router.delete(
   tutorController.removeTutorSubject,
 );
 
+router.post(
+  "/education",
+  authMiddleware("TUTOR"),
+  tutorController.addEducation,
+);
+
 export const tutorRoutes = router;
