@@ -12,6 +12,14 @@ export interface Education {
   endYear?: number | null;
   isCurrent?: boolean;
 }
+export interface UpdateEducation {
+  institute?: string;
+  degree?: string;
+  fieldOfStudy?: string;
+  startYear?: number;
+  endYear?: number | null;
+  isCurrent?: boolean;
+}
 
 const createTutorProfile = async (payload: {
   userId: string;
@@ -313,6 +321,13 @@ const removeSubject = async (userId: string, subjectId: string) => {
 // adding tutor education
 
 const addEducation = async (userId: string, payload: Education) => {
+  if (payload.endYear && payload.startYear > payload.endYear) {
+    throw new AppError(
+      400,
+      "startYear cannot be greater than endYear",
+      "Invalid_Education_Years",
+    );
+  }
   const tutorProfile = await prisma.tutorProfile.findUnique({
     where: {
       userId: userId,
@@ -346,7 +361,120 @@ const addEducation = async (userId: string, payload: Education) => {
   return result;
 };
 
-//
+// update education
+
+const updateEducation = async (
+  userId: string,
+  educationId: string,
+  payload: UpdateEducation,
+) => {
+  const tutorProfile = await prisma.tutorProfile.findUnique({
+    where: {
+      userId: userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!tutorProfile) {
+    throw new AppError(
+      404,
+      "Tutor profile not found",
+      "Tutor_Profile_Not_Found",
+      [
+        {
+          field: "Tutor education Update",
+          message: "Please user tutor profile to update education.",
+        },
+      ],
+    );
+  }
+
+  const education = await prisma.education.findUnique({
+    where: {
+      id: educationId,
+    },
+  });
+
+  if (!education || education.tutorProfileId !== tutorProfile.id) {
+    throw new AppError(
+      404,
+      "Education not found for this tutor of this id",
+      "Education_Not_found",
+      [
+        {
+          field: "Tutor education update",
+          message: "Please use valid education profile id. ",
+        },
+      ],
+    );
+  }
+
+  const result = await prisma.education.update({
+    where: {
+      id: educationId,
+    },
+    data: payload,
+  });
+
+  return result;
+};
+
+// delete education
+
+const deleteEducation = async (userId: string, educationId: string) => {
+  const tutorProfile = await prisma.tutorProfile.findUnique({
+    where: {
+      userId: userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!tutorProfile) {
+    throw new AppError(
+      404,
+      "Tutor profile not found",
+      "Tutor_Profile_Not_Found",
+      [
+        {
+          field: "Tutor education Delete",
+          message: "Please user tutor profile to delete education.",
+        },
+      ],
+    );
+  }
+
+  const education = await prisma.education.findUnique({
+    where: {
+      id: educationId,
+    },
+  });
+
+  if (!education || education.tutorProfileId !== tutorProfile.id) {
+    throw new AppError(
+      404,
+      "Education not found for this tutor",
+      "Education_Not_found",
+      [
+        {
+          field: "Tutor education Delete",
+          message: "Please use valid education profile id. ",
+        },
+      ],
+    );
+  }
+
+  const result = await prisma.education.delete({
+    where: {
+      id: educationId,
+    },
+  });
+
+  return result;
+};
 
 export const tutorService = {
   createTutorProfile,
@@ -354,4 +482,6 @@ export const tutorService = {
   addTutorSubjects,
   removeSubject,
   addEducation,
+  updateEducation,
+  deleteEducation,
 };

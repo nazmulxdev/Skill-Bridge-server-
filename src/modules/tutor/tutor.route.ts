@@ -30,4 +30,15 @@ router.post(
   tutorController.addEducation,
 );
 
+router.patch(
+  "/education/:id",
+  authMiddleware("TUTOR"),
+  tutorController.updateEducation,
+);
+router.delete(
+  "/education/:id",
+  authMiddleware("TUTOR"),
+  tutorController.deleteEducation,
+);
+
 export const tutorRoutes = router;

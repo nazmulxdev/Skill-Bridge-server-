@@ -301,10 +301,122 @@ const addEducation = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// update tutor education
+
+const updateEducation = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const educationId = req.params.id;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Tutor Education.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+  if (typeof educationId !== "string") {
+    throw new AppError(
+      400,
+      "Invalid education id type",
+      "Invalid_Education_Id",
+      [
+        {
+          field: "Tutor Education.",
+          message: "Please give valid type of id.",
+        },
+      ],
+    );
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Tutor Education.",
+          message: "Only tutor role can update education.",
+        },
+      ],
+    );
+  }
+
+  const result = await tutorService.updateEducation(
+    userId,
+    educationId,
+    req.body,
+  );
+
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Education updated successfully",
+    data: result,
+  });
+});
+
+// delete tutor education
+
+const deleteEducation = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const educationId = req.params.id;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Tutor Education.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+  if (typeof educationId !== "string") {
+    throw new AppError(
+      400,
+      "Invalid education id type",
+      "Invalid_Education_Id",
+      [
+        {
+          field: "Tutor Education.",
+          message: "Please give valid type of id.",
+        },
+      ],
+    );
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Tutor Education.",
+          message: "Only tutor role can update education.",
+        },
+      ],
+    );
+  }
+
+  const result = await tutorService.deleteEducation(userId, educationId);
+
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Education deleted successfully",
+    data: result,
+  });
+});
+
 export const tutorController = {
   createTutorProfile,
   updateHourlyRate,
   addTutorSubjects,
   removeTutorSubject,
   addEducation,
+  updateEducation,
+  deleteEducation,
 };
