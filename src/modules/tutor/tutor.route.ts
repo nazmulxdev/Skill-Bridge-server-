@@ -18,4 +18,10 @@ router.post(
   tutorController.addTutorSubjects,
 );
 
+router.delete(
+  "/subjects/:subjectId",
+  authMiddleware("TUTOR"),
+  tutorController.removeTutorSubject,
+);
+
 export const tutorRoutes = router;

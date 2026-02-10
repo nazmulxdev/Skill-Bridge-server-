@@ -188,8 +188,58 @@ const addTutorSubjects = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// remove tutor subject from table
+
+const removeTutorSubject = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const { subjectId } = req.params;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Tutor subject delete..",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Tutor Subjects delete.",
+          message: "Only tutor role can remove subjects in their table.",
+        },
+      ],
+    );
+  }
+
+  if (typeof subjectId !== "string") {
+    throw new AppError(400, "Invalid subject id type", "Invalid_Subject_Id", [
+      {
+        field: "Tutor subject delete..",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+
+  const result = await tutorService.removeSubject(userId, subjectId);
+
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Subject removed successfully",
+    data: result,
+  });
+});
+
 export const tutorController = {
   createTutorProfile,
   updateHourlyRate,
   addTutorSubjects,
+  removeTutorSubject,
 };

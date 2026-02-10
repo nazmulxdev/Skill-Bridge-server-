@@ -1,5 +1,6 @@
 // create tutor profile
 
+import { BookingStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../utils/AppErrors";
 
@@ -223,8 +224,86 @@ const addTutorSubjects = async (userId: string, subjectIds: string[]) => {
   return result;
 };
 
+// removing subject
+
+const removeSubject = async (userId: string, subjectId: string) => {
+  const tutorProfile = await prisma.tutorProfile.findUnique({
+    where: {
+      userId: userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!tutorProfile) {
+    throw new AppError(
+      404,
+      "Tutor profile not found",
+      "Tutor_Profile_Not_Found",
+      [
+        {
+          field: "Delete subject of tutor",
+          message: "Please user tutor profile to delete subject.",
+        },
+      ],
+    );
+  }
+
+  const tutorSubject = await prisma.tutorSubject.findFirst({
+    where: {
+      tutor_profileId: tutorProfile.id,
+      subjectId: subjectId,
+    },
+  });
+
+  if (!tutorSubject) {
+    throw new AppError(
+      404,
+      "Subject not found in your profile",
+      "Subject_Not_Assigned",
+      [
+        {
+          field: "Delete subject of tutor",
+          message: "Subject is not exist in your profile.",
+        },
+      ],
+    );
+  }
+
+  const bookingExists = await prisma.bookings.findFirst({
+    where: {
+      tutorProfileId: tutorProfile.id,
+      subjectId,
+    },
+  });
+
+  if (bookingExists?.status == BookingStatus.CONFIRM) {
+    throw new AppError(
+      409,
+      "Subject cannot be removed due to active bookings",
+      "Subject_In_Use",
+      [
+        {
+          field: "Delete subject of tutor.",
+          message: "There is an active booking agreement",
+        },
+      ],
+    );
+  }
+
+  const result = await prisma.tutorSubject.delete({
+    where: {
+      id: tutorSubject.id,
+    },
+  });
+
+  return result;
+};
+
 export const tutorService = {
   createTutorProfile,
   updateTutorHourlyRate,
   addTutorSubjects,
+  removeSubject,
 };
