@@ -554,6 +554,134 @@ const addAvailability = async (
   });
   return result;
 };
+
+// update availability
+
+const updateAvailability = async (
+  userId: string,
+  availabilityId: string,
+  payload: Partial<AvailabilityPayload>,
+) => {
+  const tutorProfile = await prisma.tutorProfile.findUnique({
+    where: {
+      userId: userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!tutorProfile) {
+    throw new AppError(
+      404,
+      "Tutor profile not found",
+      "Tutor_Profile_Not_Found",
+      [
+        {
+          field: "Tutor Availability",
+          message: "Please user tutor profile to update availability.",
+        },
+      ],
+    );
+  }
+
+  const availability = await prisma.availability.findUnique({
+    where: {
+      id: availabilityId,
+    },
+  });
+
+  if (!availability || availability.tutorProfileId !== tutorProfile.id) {
+    throw new AppError(
+      404,
+      "Availability not found for this tutor",
+      "Availability_Not_Found",
+      [
+        {
+          field: "Tutor Availability",
+          message: "Tutor availability not found on this id..",
+        },
+      ],
+    );
+  }
+
+  const finalStartTime = payload.startTime ?? availability.startTime;
+  const finalEndTime = payload.endTime ?? availability.endTime;
+
+  if (!isValidTimeRange(finalStartTime, finalEndTime)) {
+    throw new AppError(400, "Invalid time range", "Invalid_Time_Range", [
+      {
+        field: "time",
+        message: "startTime must be earlier than endTime",
+      },
+    ]);
+  }
+
+  const result = await prisma.availability.update({
+    where: {
+      id: availabilityId,
+    },
+    data: payload,
+  });
+
+  return result;
+};
+
+// delete user availability
+
+const deleteAvailability = async (userId: string, availabilityId: string) => {
+  const tutorProfile = await prisma.tutorProfile.findUnique({
+    where: {
+      userId: userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!tutorProfile) {
+    throw new AppError(
+      404,
+      "Tutor profile not found",
+      "Tutor_Profile_Not_Found",
+      [
+        {
+          field: "Tutor Availability",
+          message: "Please user tutor profile to update availability.",
+        },
+      ],
+    );
+  }
+
+  const availability = await prisma.availability.findUnique({
+    where: {
+      id: availabilityId,
+    },
+  });
+
+  if (!availability || availability.tutorProfileId !== tutorProfile.id) {
+    throw new AppError(
+      404,
+      "Availability not found for this tutor",
+      "Availability_Not_Found",
+      [
+        {
+          field: "Tutor Availability",
+          message: "Tutor availability not found on this id..",
+        },
+      ],
+    );
+  }
+
+  const result = await prisma.availability.delete({
+    where: {
+      id: availabilityId,
+    },
+  });
+
+  return result;
+};
+
 export const tutorService = {
   createTutorProfile,
   updateTutorHourlyRate,
@@ -563,4 +691,6 @@ export const tutorService = {
   updateEducation,
   deleteEducation,
   addAvailability,
+  updateAvailability,
+  deleteAvailability,
 };

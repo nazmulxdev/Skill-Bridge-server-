@@ -47,4 +47,16 @@ router.post(
   tutorController.addAvailability,
 );
 
+router.patch(
+  "/availabilities/:id",
+  authMiddleware("TUTOR"),
+  tutorController.updateAvailability,
+);
+
+router.delete(
+  "/availabilities/:id",
+  authMiddleware("TUTOR"),
+  tutorController.deleteAvailability,
+);
+
 export const tutorRoutes = router;

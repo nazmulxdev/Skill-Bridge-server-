@@ -467,6 +467,117 @@ const addAvailability = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+// update availability
+
+const updateAvailability = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const availabilityId = req.params.id;
+  const payload = req.body;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Tutor Education.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+  if (!availabilityId || typeof availabilityId !== "string") {
+    throw new AppError(
+      400,
+      "Invalid availability id type or missing availability id",
+      "Invalid_Availability_Id",
+      [
+        {
+          field: "Tutor Education.",
+          message: "Please give valid type of id.",
+        },
+      ],
+    );
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Tutor Education.",
+          message: "Only tutor role can update education.",
+        },
+      ],
+    );
+  }
+  const result = await tutorService.updateAvailability(
+    userId,
+    availabilityId,
+    payload,
+  );
+
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Availability updated successfully",
+    data: result,
+  });
+});
+
+// delete availability
+
+const deleteAvailability = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const availabilityId = req.params.id;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Tutor Education.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+  if (!availabilityId || typeof availabilityId !== "string") {
+    throw new AppError(
+      400,
+      "Invalid availability id type or missing availability id",
+      "Invalid_Availability_Id",
+      [
+        {
+          field: "Tutor Education.",
+          message: "Please give valid type of id.",
+        },
+      ],
+    );
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Tutor Education.",
+          message: "Only tutor role can update education.",
+        },
+      ],
+    );
+  }
+
+  const result = await tutorService.deleteAvailability(userId, availabilityId);
+
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Availability deleted successfully",
+    data: result,
+  });
+});
+
 export const tutorController = {
   createTutorProfile,
   updateHourlyRate,
@@ -476,4 +587,6 @@ export const tutorController = {
   updateEducation,
   deleteEducation,
   addAvailability,
+  updateAvailability,
+  deleteAvailability,
 };
