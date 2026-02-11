@@ -1011,6 +1011,76 @@ const updateTimeSlot = async (
   return result;
 };
 
+// delete tutor time slot
+
+const deleteTutorSlot = async (userId: string, timeSlotId: string) => {
+  const tutorProfile = await prisma.tutorProfile.findUnique({
+    where: {
+      userId: userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!tutorProfile) {
+    throw new AppError(
+      404,
+      "Tutor profile not found",
+      "Tutor_Profile_Not_Found",
+      [
+        {
+          field: "Tutor Time slot ",
+          message: "Please user tutor profile to delete time slot.",
+        },
+      ],
+    );
+  }
+
+  const existTimeSlot = await prisma.tutorTimeSlot.findUnique({
+    where: {
+      id: timeSlotId,
+    },
+  });
+
+  if (!existTimeSlot || existTimeSlot.tutorProfileId !== tutorProfile.id) {
+    throw new AppError(
+      404,
+      "Time Slot not found for this tutor",
+      "TimeSlot_Not_Found",
+      [
+        {
+          field: "Tutor Time Slot.",
+          message: "Tutor Time slot not found for this id.",
+        },
+      ],
+    );
+  }
+
+  if (existTimeSlot.isBooked) {
+    throw new AppError(
+      409,
+      "Time slot already booked",
+      "TimeSlot_Already_Booked",
+      [
+        {
+          field: "Tutor Time Slot",
+          message:
+            "You cannot delete this time slot because it has an active booking.",
+        },
+      ],
+    );
+  }
+
+  const result = await prisma.tutorTimeSlot.delete({
+    where: {
+      id: timeSlotId,
+    },
+  });
+
+  return result;
+};
+
 export const tutorService = {
   createTutorProfile,
   updateTutorHourlyRate,
@@ -1024,4 +1094,5 @@ export const tutorService = {
   deleteAvailability,
   createTutorTimeSlot,
   updateTimeSlot,
+  deleteTutorSlot,
 };

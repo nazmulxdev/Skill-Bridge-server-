@@ -71,4 +71,10 @@ router.patch(
   tutorController.updateTimeSlot,
 );
 
+router.delete(
+  "/time-slot/:id",
+  authMiddleware("TUTOR"),
+  tutorController.deleteTutorSlot,
+);
+
 export const tutorRoutes = router;

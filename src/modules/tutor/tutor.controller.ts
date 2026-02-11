@@ -587,7 +587,7 @@ const createTutorTimeSlot = catchAsync(async (req: Request, res: Response) => {
       [
         {
           field: "Tutor time slot.",
-          message: "Only tutor role can add education.",
+          message: "Only tutor role can create valid time slot.",
         },
       ],
     );
@@ -658,7 +658,7 @@ const updateTimeSlot = catchAsync(async (req: Request, res: Response) => {
       [
         {
           field: "Tutor time slot.",
-          message: "Only tutor role can add education.",
+          message: "Only tutor role can update time slot.",
         },
       ],
     );
@@ -669,6 +669,58 @@ const updateTimeSlot = catchAsync(async (req: Request, res: Response) => {
     statusCode: 200,
     success: true,
     message: "Time slot updated successfully",
+    data: result,
+  });
+});
+
+// delete tutor time slot
+
+const deleteTutorSlot = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const timeSlotId = req.params.id;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Tutor Time Slot.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+  if (typeof timeSlotId !== "string") {
+    throw new AppError(
+      400,
+      "Invalid time slot id type",
+      "Invalid_TimeSlot_Id",
+      [
+        {
+          field: "Tutor Time Slot.",
+          message: "Please give valid type of time slot id.",
+        },
+      ],
+    );
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Tutor time slot.",
+          message: "Only tutor role can delete time slot.",
+        },
+      ],
+    );
+  }
+
+  const result = await tutorService.deleteTutorSlot(userId, timeSlotId);
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Time slot deleted successfully",
     data: result,
   });
 });
@@ -686,4 +738,5 @@ export const tutorController = {
   deleteAvailability,
   createTutorTimeSlot,
   updateTimeSlot,
+  deleteTutorSlot,
 };
