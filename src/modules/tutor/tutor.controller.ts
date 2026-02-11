@@ -725,6 +725,100 @@ const deleteTutorSlot = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// confirm Booking
+
+const confirmBooking = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const bookingId = req.params?.id;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Confirm Booking.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+  if (typeof bookingId !== "string") {
+    throw new AppError(400, "Invalid Booking id type", "Invalid_Booking_Id", [
+      {
+        field: "Confirm Booking.",
+        message: "Please give valid type of Booking id.",
+      },
+    ]);
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Confirm Booking.",
+          message: "Only tutor role can complete booking.",
+        },
+      ],
+    );
+  }
+
+  const result = await tutorService.confirmBooking(userId, bookingId);
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Booking Confirm  successfully",
+    data: result,
+  });
+});
+
+// complete booking
+
+const completeBooking = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const bookingId = req.params?.id;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Complete Booking.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+  if (typeof bookingId !== "string") {
+    throw new AppError(400, "Invalid Booking id type", "Invalid_Booking_Id", [
+      {
+        field: "Complete Booking.",
+        message: "Please give valid type of Booking id.",
+      },
+    ]);
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Complete Booking.",
+          message: "Only tutor role can complete booking.",
+        },
+      ],
+    );
+  }
+
+  const result = await tutorService.completeBooking(userId, bookingId);
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Booking completed  successfully",
+    data: result,
+  });
+});
+
 export const tutorController = {
   createTutorProfile,
   updateHourlyRate,
@@ -739,4 +833,6 @@ export const tutorController = {
   createTutorTimeSlot,
   updateTimeSlot,
   deleteTutorSlot,
+  confirmBooking,
+  completeBooking,
 };

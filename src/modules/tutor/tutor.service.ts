@@ -1081,6 +1081,106 @@ const deleteTutorSlot = async (userId: string, timeSlotId: string) => {
   return result;
 };
 
+// confirm booking
+
+const confirmBooking = async (userId: string, bookingId: string) => {
+  const booking = await prisma.bookings.findUnique({
+    where: {
+      id: bookingId,
+    },
+    include: {
+      tutorProfile: true,
+    },
+  });
+
+  if (!booking) {
+    throw new AppError(404, "Booking not found", "Booking_Not_Found", [
+      {
+        field: "Confirm Booking",
+        message: "Please user proper booking id to confirm.",
+      },
+    ]);
+  }
+  if (booking.status !== BookingStatus.PENDING) {
+    throw new AppError(
+      404,
+      "Only pending booking can be confirm",
+      "INVALID_BOOKING_STATUS",
+      [
+        {
+          field: "Confirm Booking",
+          message: "Please user proper booking status to confirm.",
+        },
+      ],
+    );
+  }
+
+  if (booking.tutorProfile.userId !== userId) {
+    throw new AppError(
+      403,
+      "You are not allowed to confirm this booking",
+      "NOT_AUTHORIZED",
+    );
+  }
+
+  const updatedBooking = await prisma.bookings.update({
+    where: { id: bookingId },
+    data: { status: BookingStatus.CONFIRM },
+  });
+
+  return updatedBooking;
+};
+
+// complete bookings
+
+const completeBooking = async (userId: string, bookingId: string) => {
+  const booking = await prisma.bookings.findUnique({
+    where: {
+      id: bookingId,
+    },
+    include: {
+      tutorProfile: true,
+    },
+  });
+
+  if (!booking) {
+    throw new AppError(404, "Booking not found", "Booking_Not_Found", [
+      {
+        field: "Complete Booking",
+        message: "Please user proper booking id to complete.",
+      },
+    ]);
+  }
+  if (booking.status !== BookingStatus.CONFIRM) {
+    throw new AppError(
+      404,
+      "Only pending booking can be complete",
+      "INVALID_BOOKING_STATUS",
+      [
+        {
+          field: "Confirm Booking",
+          message: "Please user proper booking status to complete booking.",
+        },
+      ],
+    );
+  }
+
+  if (booking.tutorProfile.userId !== userId) {
+    throw new AppError(
+      403,
+      "You are not allowed to confirm this booking",
+      "NOT_AUTHORIZED",
+    );
+  }
+
+  const updatedBooking = await prisma.bookings.update({
+    where: { id: bookingId },
+    data: { status: BookingStatus.COMPLETE },
+  });
+
+  return updatedBooking;
+};
+
 export const tutorService = {
   createTutorProfile,
   updateTutorHourlyRate,
@@ -1095,4 +1195,6 @@ export const tutorService = {
   createTutorTimeSlot,
   updateTimeSlot,
   deleteTutorSlot,
+  confirmBooking,
+  completeBooking,
 };

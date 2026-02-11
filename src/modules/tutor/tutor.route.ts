@@ -77,4 +77,16 @@ router.delete(
   tutorController.deleteTutorSlot,
 );
 
+router.patch(
+  "/bookings/confirm/:id",
+  authMiddleware("TUTOR"),
+  tutorController.confirmBooking,
+);
+
+router.patch(
+  "/bookings/complete/:id",
+  authMiddleware("TUTOR"),
+  tutorController.completeBooking,
+);
+
 export const tutorRoutes = router;
