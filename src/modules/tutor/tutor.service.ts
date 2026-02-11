@@ -1,6 +1,10 @@
 // create tutor profile
 
-import { BookingStatus, DayOfWeek } from "../../../generated/prisma/enums";
+import {
+  BookingStatus,
+  DayOfWeek,
+  UserStatus,
+} from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../utils/AppErrors";
 
@@ -1089,7 +1093,12 @@ const confirmBooking = async (userId: string, bookingId: string) => {
       id: bookingId,
     },
     include: {
-      tutorProfile: true,
+      tutorProfile: {
+        include: {
+          user: true,
+        },
+      },
+      student: true,
     },
   });
 
@@ -1123,6 +1132,25 @@ const confirmBooking = async (userId: string, bookingId: string) => {
     );
   }
 
+  if (booking.tutorProfile.user.status === UserStatus.BANNED) {
+    throw new AppError(403, "Tutor account is banned.", "ACCOUNT_BANNED", [
+      {
+        field: "Authentication",
+        message:
+          "You are not allowed to access the system. Please contact support.",
+      },
+    ]);
+  }
+
+  if (booking.student.status === UserStatus.BANNED) {
+    throw new AppError(403, "Student account is banned.", "ACCOUNT_BANNED", [
+      {
+        field: "Authentication",
+        message: "This student has been banned by admin.",
+      },
+    ]);
+  }
+
   const updatedBooking = await prisma.bookings.update({
     where: { id: bookingId },
     data: { status: BookingStatus.CONFIRM },
@@ -1139,7 +1167,10 @@ const completeBooking = async (userId: string, bookingId: string) => {
       id: bookingId,
     },
     include: {
-      tutorProfile: true,
+      tutorProfile: {
+        include: { user: true },
+      },
+      student: true,
     },
   });
 
@@ -1171,6 +1202,25 @@ const completeBooking = async (userId: string, bookingId: string) => {
       "You are not allowed to confirm this booking",
       "NOT_AUTHORIZED",
     );
+  }
+
+  if (booking.tutorProfile.user.status === UserStatus.BANNED) {
+    throw new AppError(403, "Tutor account is banned.", "ACCOUNT_BANNED", [
+      {
+        field: "Authentication",
+        message:
+          "You are not allowed to access the system. Please contact support.",
+      },
+    ]);
+  }
+
+  if (booking.student.status === UserStatus.BANNED) {
+    throw new AppError(403, "Student account is banned.", "ACCOUNT_BANNED", [
+      {
+        field: "Authentication",
+        message: "This student has been banned by admin.",
+      },
+    ]);
   }
 
   const updatedBooking = await prisma.bookings.update({

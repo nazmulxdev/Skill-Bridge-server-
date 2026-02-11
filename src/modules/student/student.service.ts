@@ -1,6 +1,6 @@
 // creating bookings against tutor exist slot
 
-import { BookingStatus } from "../../../generated/prisma/enums";
+import { BookingStatus, UserStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../utils/AppErrors";
 import { timeToMinutes } from "../tutor/tutor.service";
@@ -16,7 +16,11 @@ const createBooking = async (
         id: timeSlotId,
       },
       include: {
-        tutorProfile: true,
+        tutorProfile: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -45,6 +49,15 @@ const createBooking = async (
           },
         ],
       );
+    }
+
+    if (slot.tutorProfile.user.status === UserStatus.BANNED) {
+      throw new AppError(403, "Tutor account is banned.", "ACCOUNT_BANNED", [
+        {
+          field: "Authentication",
+          message: "This tutor is banned. Please try another tutor.",
+        },
+      ]);
     }
 
     const isExistSubject = await txx.tutorSubject.findFirst({

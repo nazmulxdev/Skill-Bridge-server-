@@ -35,6 +35,21 @@ const authMiddleware = (...roles: Array<Role>) => {
       ]);
     }
 
+    if (session.user.status === UserStatus.BANNED) {
+      throw new AppError(
+        403,
+        "Your account has been banned by admin.",
+        "ACCOUNT_BANNED",
+        [
+          {
+            field: "Authentication",
+            message:
+              "You are not allowed to access the system. Please contact support.",
+          },
+        ],
+      );
+    }
+
     req.user = {
       id: session.user.id,
       email: session.user.email,
