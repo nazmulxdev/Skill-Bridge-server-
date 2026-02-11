@@ -65,4 +65,10 @@ router.post(
   tutorController.createTutorTimeSlot,
 );
 
+router.patch(
+  "/time-slot/:id",
+  authMiddleware("TUTOR"),
+  tutorController.updateTimeSlot,
+);
+
 export const tutorRoutes = router;

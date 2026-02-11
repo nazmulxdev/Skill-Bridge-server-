@@ -847,6 +847,170 @@ const createTutorTimeSlot = async (
   return result;
 };
 
+// update tutor time slot
+
+const updateTimeSlot = async (
+  userId: string,
+  timeSlotId: string,
+  payload: {
+    date?: Date;
+    startTime?: string;
+    endTime?: string;
+  },
+) => {
+  const tutorProfile = await prisma.tutorProfile.findUnique({
+    where: {
+      userId: userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!tutorProfile) {
+    throw new AppError(
+      404,
+      "Tutor profile not found",
+      "Tutor_Profile_Not_Found",
+      [
+        {
+          field: "Tutor Time slot ",
+          message: "Please user tutor profile to update time slot.",
+        },
+      ],
+    );
+  }
+
+  const existTimeSlot = await prisma.tutorTimeSlot.findUnique({
+    where: {
+      id: timeSlotId,
+    },
+  });
+
+  if (!existTimeSlot || existTimeSlot.tutorProfileId !== tutorProfile.id) {
+    throw new AppError(
+      404,
+      "Time Slot not found for this tutor",
+      "TimeSlot_Not_Found",
+      [
+        {
+          field: "Tutor Time Slot.",
+          message: "Tutor Time slot not found for this id.",
+        },
+      ],
+    );
+  }
+
+  const finalDate = payload.date ? new Date(payload.date) : existTimeSlot.date;
+
+  const finalStartTime = payload.startTime ?? existTimeSlot.startTime;
+  const finalEndTime = payload.endTime ?? existTimeSlot.endTime;
+
+  if (isNaN(new Date(finalDate).getTime())) {
+    throw new AppError(400, "Invalid date format", "INVALID_DATE", [
+      {
+        field: "date",
+        message: "Date must be a valid ISO date string (YYYY-MM-DD)",
+      },
+    ]);
+  }
+
+  const slotStart = timeToMinutes(finalStartTime);
+  const slotEnd = timeToMinutes(finalEndTime);
+
+  if (slotStart >= slotEnd) {
+    throw new AppError(400, "Invalid time range", "Invalid_Time_Range", [
+      {
+        field: "time",
+        message: "startTime must be earlier than endTime",
+      },
+    ]);
+  }
+
+  const dayOfWeek = getDayOfWeek(new Date(finalDate));
+
+  const availabilities = await prisma.availability.findMany({
+    where: {
+      tutorProfileId: tutorProfile.id,
+      dayOfWeek,
+    },
+  });
+
+  if (availabilities.length === 0) {
+    throw new AppError(
+      404,
+      "Availability not found for this day",
+      "Availability_Not_Found",
+      [
+        {
+          field: "Tutor Time slot",
+          message: `Tutor availability not found for this ${payload.date} date (${dayOfWeek}).`,
+        },
+      ],
+    );
+  }
+
+  const fitsAvailability = availabilities.some((a) => {
+    const availStart = timeToMinutes(a.startTime);
+    const availEnd = timeToMinutes(a.endTime);
+
+    return slotStart >= availStart && slotEnd <= availEnd;
+  });
+
+  if (!fitsAvailability) {
+    throw new AppError(
+      400,
+      "Time slot outside availability",
+      "OUTSIDE_AVAILABILITY",
+      [
+        {
+          field: "Tutor Time slot",
+          message: `Tutor availability time is not exist from ${payload.startTime} to ${payload.endTime} on this ${payload?.date} date (${dayOfWeek}).`,
+        },
+      ],
+    );
+  }
+
+  const overlappingSlot = await prisma.tutorTimeSlot.findFirst({
+    where: {
+      tutorProfileId: tutorProfile.id,
+      date: finalDate,
+      id: { not: timeSlotId },
+      NOT: {
+        OR: [
+          { endTime: { lte: finalStartTime } },
+          { startTime: { gte: finalEndTime } },
+        ],
+      },
+    },
+  });
+
+  if (overlappingSlot) {
+    throw new AppError(
+      409,
+      "Time slot overlaps with existing slot",
+      "SLOT_OVERLAP",
+      [
+        {
+          field: "Tutor Time slot",
+          message: `There is also an exist slot between this time ${payload?.startTime} to ${payload.endTime} on this ${payload.date} date (${dayOfWeek}).`,
+        },
+      ],
+    );
+  }
+
+  const result = await prisma.tutorTimeSlot.update({
+    where: { id: timeSlotId },
+    data: {
+      date: finalDate,
+      startTime: finalStartTime,
+      endTime: finalEndTime,
+    },
+  });
+
+  return result;
+};
+
 export const tutorService = {
   createTutorProfile,
   updateTutorHourlyRate,
@@ -859,4 +1023,5 @@ export const tutorService = {
   updateAvailability,
   deleteAvailability,
   createTutorTimeSlot,
+  updateTimeSlot,
 };

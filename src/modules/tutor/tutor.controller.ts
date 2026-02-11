@@ -620,6 +620,59 @@ const createTutorTimeSlot = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// update tutor time slot
+
+const updateTimeSlot = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const timeSlotId = req.params.id;
+  const payload = req.body;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Tutor Time Slot.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+  if (typeof timeSlotId !== "string") {
+    throw new AppError(
+      400,
+      "Invalid time slot id type",
+      "Invalid_TimeSlot_Id",
+      [
+        {
+          field: "Tutor Time Slot.",
+          message: "Please give valid type of time slot id.",
+        },
+      ],
+    );
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Tutor time slot.",
+          message: "Only tutor role can add education.",
+        },
+      ],
+    );
+  }
+  const result = await tutorService.updateTimeSlot(userId, timeSlotId, payload);
+
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Time slot updated successfully",
+    data: result,
+  });
+});
+
 export const tutorController = {
   createTutorProfile,
   updateHourlyRate,
@@ -632,4 +685,5 @@ export const tutorController = {
   updateAvailability,
   deleteAvailability,
   createTutorTimeSlot,
+  updateTimeSlot,
 };
