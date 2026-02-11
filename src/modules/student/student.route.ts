@@ -10,4 +10,10 @@ router.post(
   studentController.createBooking,
 );
 
+router.patch(
+  "/bookings/cancel/:id",
+  authMiddleware("STUDENT"),
+  studentController.cancelBooking,
+);
+
 export const studentRoutes = router;

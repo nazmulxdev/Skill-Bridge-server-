@@ -87,8 +87,8 @@ model Bookings {
     studentId      String
     tutorProfileId String
     subjectId      String
-    timeSlotId     String  @unique
-    booking_price  Decimal @db.Decimal(10,2)
+    timeSlotId     String
+    booking_price  Decimal @db.Decimal(10, 2)
 
     student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
@@ -102,6 +102,8 @@ model Bookings {
 
     createdAt DateTime @default(now())
     review    Review?
+
+    @@index([timeSlotId])
 }
 
 // tutor's schema
@@ -111,7 +113,7 @@ model TutorProfile {
 
     userId String @unique
 
-    hourlyRate Float
+    hourlyRate Decimal @db.Decimal(10, 2)
 
     isFeatured Boolean @default(false)
 
@@ -170,7 +172,7 @@ model TutorTimeSlot {
     endTime        String
     isBooked       Boolean      @default(false)
     tutorProfile   TutorProfile @relation(fields: [tutorProfileId], references: [id], onDelete: Cascade)
-    bookings       Bookings?
+    bookings       Bookings[]
 
     createdAt DateTime @default(now())
 
