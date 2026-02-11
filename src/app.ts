@@ -10,6 +10,7 @@ import globalErrorHandler from "./middlewares/globalErrorHandler";
 import { adminRoutes } from "./modules/admin/admin.route";
 import { categoryRoutes } from "./modules/categories/categories.route";
 import { subjectsRoutes } from "./modules/subjects/subjects.route";
+import { studentRoutes } from "./modules/student/student.route";
 
 const app = express();
 app.use(express.json());
@@ -32,6 +33,10 @@ app.all(
     }
   },
 );
+
+// student api
+
+app.use("/api/students", studentRoutes);
 
 // tutor api
 

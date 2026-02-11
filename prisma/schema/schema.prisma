@@ -88,7 +88,7 @@ model Bookings {
     tutorProfileId String
     subjectId      String
     timeSlotId     String  @unique
-    booking_price  Decimal
+    booking_price  Decimal @db.Decimal(10,2)
 
     student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
