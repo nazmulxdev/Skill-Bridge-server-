@@ -133,7 +133,7 @@ const createBooking = async (
   });
 };
 
-// delete booking
+// cancel booking
 
 const cancelBooking = async (userId: string, bookingId: string) => {
   return prisma.$transaction(async (txx) => {
@@ -215,6 +215,7 @@ const cancelBooking = async (userId: string, bookingId: string) => {
         status: BookingStatus.CANCELLED,
       },
     });
+
     await txx.tutorTimeSlot.update({
       where: {
         id: booking.timeSlotId,
@@ -228,7 +229,97 @@ const cancelBooking = async (userId: string, bookingId: string) => {
   });
 };
 
+// upload review
+
+const createReview = async (
+  userId: string,
+  bookingId: string,
+  payload: {
+    rating: number;
+    comment?: string;
+  },
+) => {
+  const booking = await prisma.bookings.findUnique({
+    where: {
+      id: bookingId,
+    },
+    include: {
+      review: true,
+    },
+  });
+
+  if (!booking) {
+    throw new AppError(404, "Booking not found.", "Booking_NOt_Found", [
+      {
+        field: "Making Review",
+        message: "Please  provide valid booking id.",
+      },
+    ]);
+  }
+
+  if (booking.studentId !== userId) {
+    throw new AppError(403, "Unauthorized access", "UNAUTHORIZED", [
+      {
+        field: "Making Review",
+        message: "You are not authorized to make review for this booking.",
+      },
+    ]);
+  }
+
+  if (booking.status !== BookingStatus.COMPLETE) {
+    throw new AppError(
+      400,
+      "You can only review after session is complete.",
+      "SESSION_NOT_COMPLETED",
+      [
+        {
+          field: "Making Review",
+          message: "Please complete the session and then make review.",
+        },
+      ],
+    );
+  }
+
+  if (booking.review) {
+    throw new AppError(
+      409,
+      "You have already reviewed this session",
+      "REVIEW_ALREADY_EXISTS",
+      [
+        {
+          field: "Making Review",
+          message:
+            "Only one review can give against each booking after complete session.",
+        },
+      ],
+    );
+  }
+
+  if (payload.rating > 5 || payload.rating < 0) {
+    throw new AppError(409, "Rating must be between 0-5.", "INVALID_RATING", [
+      {
+        field: "Making Review",
+        message:
+          "Rating must be greater then 0 and less than 5 and can be fractional.",
+      },
+    ]);
+  }
+
+  const result = await prisma.review.create({
+    data: {
+      bookingId: booking.id,
+      studentId: userId,
+      tutorProfileId: booking.tutorProfileId,
+      rating: payload.rating,
+      comment: payload.comment ?? null,
+    },
+  });
+
+  return result;
+};
+
 export const studentService = {
   createBooking,
   cancelBooking,
+  createReview,
 };

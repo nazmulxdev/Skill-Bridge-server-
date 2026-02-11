@@ -119,7 +119,57 @@ const cancelBooking = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// create review
+
+const createReview = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const bookingId = req.params?.id;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid student id type", "Invalid_Student_Id", [
+      {
+        field: "Making Review.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+
+  if (typeof bookingId !== "string") {
+    throw new AppError(400, "Invalid booking id type", "Invalid_Booking_Id", [
+      {
+        field: "Making Review.",
+        message: "Please give valid type of booking id.",
+      },
+    ]);
+  }
+
+  if (role !== Role.STUDENT) {
+    throw new AppError(
+      403,
+      "Only student can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Making Review.",
+          message: "Only student can make review.",
+        },
+      ],
+    );
+  }
+
+  const result = await studentService.createReview(userId, bookingId, req.body);
+
+  return AppResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Review made successfully",
+    data: result,
+  });
+});
+
 export const studentController = {
   createBooking,
   cancelBooking,
+  createReview,
 };

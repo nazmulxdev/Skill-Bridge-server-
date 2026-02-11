@@ -1154,7 +1154,7 @@ const completeBooking = async (userId: string, bookingId: string) => {
   if (booking.status !== BookingStatus.CONFIRM) {
     throw new AppError(
       404,
-      "Only pending booking can be complete",
+      "Only confirm booking can be complete",
       "INVALID_BOOKING_STATUS",
       [
         {

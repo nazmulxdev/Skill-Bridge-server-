@@ -14,6 +14,22 @@ const getAllUser = async () => {
           education: true,
           availabilities: true,
           tutorTimeSlots: true,
+
+          // bookings received as tutor
+          bookings: {
+            include: {
+              student: true,
+              subject: true,
+            },
+          },
+
+          //  reviews received as tutor
+          reviews: {
+            include: {
+              student: true,
+            },
+          },
+
           subjects: {
             include: {
               subject: {
@@ -25,7 +41,16 @@ const getAllUser = async () => {
           },
         },
       },
-      bookings: true,
+
+      //  bookings made as student
+      bookings: {
+        include: {
+          tutorProfile: true,
+          subject: true,
+        },
+      },
+
+      // reviews written as student
       reviews: true,
     },
   });

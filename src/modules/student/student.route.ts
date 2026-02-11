@@ -16,4 +16,10 @@ router.patch(
   studentController.cancelBooking,
 );
 
+router.post(
+  "/bookings/review/:id",
+  authMiddleware("STUDENT"),
+  studentController.createReview,
+);
+
 export const studentRoutes = router;
