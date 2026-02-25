@@ -4,6 +4,8 @@ import { tutorController } from "./tutor.controller";
 
 const router = Router();
 
+router.get("/me", authMiddleware("TUTOR"), tutorController.getTutorProfile);
+
 router.post("/", authMiddleware("TUTOR"), tutorController.createTutorProfile);
 
 router.patch(
@@ -79,6 +81,12 @@ router.delete(
 
 router.patch(
   "/bookings/confirm/:id",
+  authMiddleware("TUTOR"),
+  tutorController.confirmBooking,
+);
+
+router.patch(
+  "/bookings/cancel/:id",
   authMiddleware("TUTOR"),
   tutorController.confirmBooking,
 );

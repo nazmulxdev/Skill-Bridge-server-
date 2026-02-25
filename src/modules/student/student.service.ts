@@ -279,11 +279,11 @@ const createReview = async (
     ]);
   }
 
-  if (booking.status !== BookingStatus.COMPLETE) {
+  if (booking.status !== BookingStatus.CONFIRM) {
     throw new AppError(
       400,
       "You can only review after session is complete.",
-      "SESSION_NOT_COMPLETED",
+      "SESSION_NOT_CONFIRM",
       [
         {
           field: "Making Review",
@@ -318,21 +318,56 @@ const createReview = async (
     ]);
   }
 
-  const result = await prisma.review.create({
-    data: {
-      bookingId: booking.id,
-      studentId: userId,
-      tutorProfileId: booking.tutorProfileId,
-      rating: payload.rating,
-      comment: payload.comment ?? null,
-    },
+  const result = await prisma.$transaction(async (txx) => {
+    const updatedBooking = await txx.bookings.update({
+      where: { id: bookingId },
+      data: { status: BookingStatus.COMPLETE },
+    });
+
+    if (updatedBooking) {
+      const createReview = await txx.review.create({
+        data: {
+          bookingId: booking.id,
+          studentId: userId,
+          tutorProfileId: booking.tutorProfileId,
+          rating: payload.rating,
+          comment: payload.comment ?? null,
+        },
+      });
+      return { updatedBooking, createReview };
+    }
   });
 
   return result;
+};
+
+// get tutor profile
+
+const getStudentProfile = async (userId: string) => {
+  const studentProfile = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    include: {
+      reviews: true,
+      bookings: true,
+    },
+  });
+
+  if (!studentProfile) {
+    throw new AppError(404, "No user found with this id.", "Invalid_User_Id", [
+      {
+        field: "Retrieve student profile.",
+        message: "Please provide a valid user id.",
+      },
+    ]);
+  }
+  return studentProfile;
 };
 
 export const studentService = {
   createBooking,
   cancelBooking,
   createReview,
+  getStudentProfile,
 };

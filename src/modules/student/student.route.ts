@@ -4,6 +4,12 @@ import { studentController } from "./student.controller";
 
 const router = Router();
 
+router.get(
+  "/me",
+  authMiddleware("STUDENT"),
+  studentController.getStudentProfile,
+);
+
 router.post(
   "/bookings/:id",
   authMiddleware("STUDENT"),

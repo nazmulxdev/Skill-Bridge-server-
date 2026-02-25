@@ -780,7 +780,7 @@ const createTutorTimeSlot = async (
   if (availabilities.length === 0) {
     throw new AppError(
       404,
-      "Availability not found for this tutor",
+      "Tutor is not availability on this day",
       "Availability_Not_Found",
       [
         {
@@ -1159,6 +1159,101 @@ const confirmBooking = async (userId: string, bookingId: string) => {
   return updatedBooking;
 };
 
+// cancel booking from tutor
+const cancelBooking = async (userId: string, bookingId: string) => {
+  return prisma.$transaction(async (txx) => {
+    const booking = await txx.bookings.findUnique({
+      where: {
+        id: bookingId,
+      },
+      include: {
+        timeSlot: true,
+      },
+    });
+
+    if (!booking) {
+      throw new AppError(404, "Booking not found.", "Booking_NOt_Found", [
+        {
+          field: "Booking slot",
+          message: "Please  provide valid booking id.",
+        },
+      ]);
+    }
+
+    if (booking.tutorProfileId !== userId) {
+      throw new AppError(403, "Unauthorized access", "UNAUTHORIZED", [
+        {
+          field: "Cancel Booking",
+          message: "You are not authorized to cancel this booking slot",
+        },
+      ]);
+    }
+
+    if (booking.status === BookingStatus.CANCELLED) {
+      throw new AppError(
+        400,
+        "Booking already cancelled",
+        "ALREADY_CANCELLED",
+        [
+          {
+            field: "Cancel Booking",
+            message: "You are not authorized to cancel this booking slot",
+          },
+        ],
+      );
+    }
+    if (booking.status === BookingStatus.CONFIRM) {
+      throw new AppError(
+        400,
+        "Booking has been confirmed by tutor.",
+        "BOOKING_CONFIRMED",
+        [
+          {
+            field: "Cancel Booking",
+            message:
+              "You are not authorized to cancel this booking slot because of tutor already confirmed this booking",
+          },
+        ],
+      );
+    }
+
+    if (booking.status === BookingStatus.COMPLETE) {
+      throw new AppError(
+        400,
+        "Completed booking cannot be cancelled",
+        "CANNOT_CANCEL_COMPLETE",
+        [
+          {
+            field: "Cancel Booking",
+            message:
+              "You are not authorized to cancel this booking slot because booking has already been completed.",
+          },
+        ],
+      );
+    }
+
+    const result = await txx.bookings.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        status: BookingStatus.CANCELLED,
+      },
+    });
+
+    await txx.tutorTimeSlot.update({
+      where: {
+        id: booking.timeSlotId,
+      },
+      data: {
+        isBooked: false,
+      },
+    });
+
+    return result;
+  });
+};
+
 // complete bookings
 
 const completeBooking = async (userId: string, bookingId: string) => {
@@ -1231,6 +1326,55 @@ const completeBooking = async (userId: string, bookingId: string) => {
   return updatedBooking;
 };
 
+// get tutor profile
+
+const getTutorProfile = async (userId: string) => {
+  const tutorProfile = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    include: {
+      tutorProfiles: {
+        include: {
+          subjects: {
+            include: {
+              subject: {
+                include: {
+                  category: true,
+                },
+              },
+            },
+          },
+          education: true,
+          availabilities: true,
+          tutorTimeSlots: true,
+          bookings: {
+            include: {
+              student: true,
+              subject: true,
+              timeSlot: true,
+              review: true,
+            },
+          },
+          reviews: true,
+        },
+      },
+    },
+  });
+
+  console.log(tutorProfile);
+
+  if (!tutorProfile) {
+    throw new AppError(404, "No user found with this id.", "Invalid_User_Id", [
+      {
+        field: "Tutor profile create.",
+        message: "Please provide a valid user id.",
+      },
+    ]);
+  }
+  return tutorProfile;
+};
+
 export const tutorService = {
   createTutorProfile,
   updateTutorHourlyRate,
@@ -1246,5 +1390,7 @@ export const tutorService = {
   updateTimeSlot,
   deleteTutorSlot,
   confirmBooking,
+  cancelBooking,
   completeBooking,
+  getTutorProfile,
 };

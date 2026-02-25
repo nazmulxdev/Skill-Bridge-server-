@@ -11,6 +11,7 @@ import { adminRoutes } from "./modules/admin/admin.route";
 import { categoryRoutes } from "./modules/categories/categories.route";
 import { subjectsRoutes } from "./modules/subjects/subjects.route";
 import { studentRoutes } from "./modules/student/student.route";
+import { publicRoutes } from "./modules/public/public.route";
 
 const app = express();
 app.use(express.json());
@@ -34,6 +35,10 @@ app.all(
   },
 );
 
+// public route
+
+app.use("/api/public", publicRoutes);
+
 // student api
 
 app.use("/api/students", studentRoutes);
@@ -53,6 +58,11 @@ app.use("/api/subjects", subjectsRoutes);
 // admin api
 
 app.use("/api/admin", adminRoutes);
+
+// home route
+app.get("/", (req: Request, res: Response) => {
+  res.send("Welcome to the skill bridge server.");
+});
 
 // 404 handler
 app.use(notFoundError);

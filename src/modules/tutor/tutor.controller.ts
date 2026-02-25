@@ -570,6 +570,8 @@ const createTutorTimeSlot = catchAsync(async (req: Request, res: Response) => {
   const role = req.user?.role;
   const { date, startTime, endTime } = req.body;
 
+  console.log(date, startTime, endTime);
+
   if (typeof userId !== "string") {
     throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
       {
@@ -772,6 +774,54 @@ const confirmBooking = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// cancel Booking
+
+const cancelBooking = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+  const bookingId = req.params.id;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid tutor id type", "Invalid_TUTOR_Id", [
+      {
+        field: "Book Time Slot.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+
+  if (typeof bookingId !== "string") {
+    throw new AppError(400, "Invalid booking id type", "Invalid_Booking_Id", [
+      {
+        field: "Cancel Booking slot.",
+        message: "Please give valid type of booking id.",
+      },
+    ]);
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Booking time slot.",
+          message: "Only tutor can book time slot.",
+        },
+      ],
+    );
+  }
+
+  const result = await tutorService.cancelBooking(userId, bookingId);
+  return AppResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Booking cancelled successfully",
+    data: result,
+  });
+});
+
 // complete booking
 
 const completeBooking = catchAsync(async (req: Request, res: Response) => {
@@ -819,6 +869,44 @@ const completeBooking = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get tutor profile
+
+const getTutorProfile = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Complete Booking.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+
+  if (role !== Role.TUTOR) {
+    throw new AppError(
+      403,
+      "Only tutor can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Complete Booking.",
+          message: "Only tutor role can complete booking.",
+        },
+      ],
+    );
+  }
+
+  const result = await tutorService.getTutorProfile(userId);
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Tutor profile retrieve successfully",
+    data: result,
+  });
+});
+
 export const tutorController = {
   createTutorProfile,
   updateHourlyRate,
@@ -834,5 +922,7 @@ export const tutorController = {
   updateTimeSlot,
   deleteTutorSlot,
   confirmBooking,
+  cancelBooking,
   completeBooking,
+  getTutorProfile,
 };

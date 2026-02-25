@@ -168,8 +168,47 @@ const createReview = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get student profile
+
+const getStudentProfile = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const role = req.user?.role;
+
+  if (typeof userId !== "string") {
+    throw new AppError(400, "Invalid user id type", "Invalid_User_Id", [
+      {
+        field: "Complete Booking.",
+        message: "Please give valid type of id.",
+      },
+    ]);
+  }
+
+  if (role !== Role.STUDENT) {
+    throw new AppError(
+      403,
+      "Only student can use this route",
+      "Unauthorized_Access",
+      [
+        {
+          field: "Retrieve my profile.",
+          message: "Only tutor role can complete booking.",
+        },
+      ],
+    );
+  }
+
+  const result = await studentService.getStudentProfile(userId);
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Student profile retrieve successfully",
+    data: result,
+  });
+});
+
 export const studentController = {
   createBooking,
   cancelBooking,
   createReview,
+  getStudentProfile,
 };
