@@ -1,6 +1,7 @@
 //  get all featured teacher
 
 import { prisma } from "../../lib/prisma";
+import AppError from "../../utils/AppErrors";
 
 const getAllFeaturedTutor = async () => {
   const result = await prisma.tutorProfile.findMany({
@@ -133,7 +134,67 @@ const getAllTutor = async (payload: {
   };
 };
 
+// get tutor by id
+
+const getTutorById = async (id: string) => {
+  if (!id) {
+    throw new AppError(
+      400,
+      "Tutor id is required to update status.",
+      "Missing User id",
+      [
+        {
+          field: "Tutor public profile",
+          message: "Please give tutor id.",
+        },
+      ],
+    );
+  }
+
+  const result = await prisma.tutorProfile.findUnique({
+    where: {
+      id: id,
+    },
+    include: {
+      user: true,
+      education: true,
+      subjects: {
+        include: {
+          subject: {
+            include: {
+              category: true,
+            },
+          },
+        },
+      },
+      availabilities: true,
+      tutorTimeSlots: true,
+      reviews: true,
+      bookings: true,
+    },
+  });
+
+  console.log(result);
+
+  if (!result) {
+    throw new AppError(
+      404,
+      "No tutor found with this id.",
+      "Invalid_tutor_Id",
+      [
+        {
+          field: "Retrieve tutor by id.",
+          message: "Please provide a valid tutor id.",
+        },
+      ],
+    );
+  }
+
+  return result;
+};
+
 export const publicService = {
   getAllFeaturedTutor,
   getAllTutor,
+  getTutorById,
 };

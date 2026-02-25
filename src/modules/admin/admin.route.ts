@@ -9,8 +9,8 @@ router.get("/users", authMiddleware("ADMIN"), adminController.getAllUser);
 router.patch("/users/:id", authMiddleware("ADMIN"), adminController.updateUser);
 
 router.patch(
-  "/tutors/:id/feature",
-  authMiddleware("ADMIN", "TUTOR"),
+  "/tutors/:id/featured",
+  authMiddleware("ADMIN"),
   adminController.featureTutor,
 );
 

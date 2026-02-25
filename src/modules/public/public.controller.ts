@@ -58,7 +58,36 @@ const getTutors = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// get tutor by id
+
+const getTutorById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  console.log(id);
+
+  if (typeof id !== "string") {
+    throw new AppError(400, "User id types error", "Invalid_User_id", [
+      {
+        field: "Update user status.",
+        message: "Please give valid type of user id.",
+      },
+    ]);
+  }
+
+  const result = await publicService.getTutorById(id);
+
+  console.log(result);
+
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Tutor retrieve successfully.",
+    data: result,
+  });
+});
+
 export const publicController = {
   getAllFeaturedTutor,
   getTutors,
+  getTutorById,
 };

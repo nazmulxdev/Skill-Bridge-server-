@@ -341,7 +341,7 @@ const createReview = async (
   return result;
 };
 
-// get tutor profile
+// get student profile
 
 const getStudentProfile = async (userId: string) => {
   const studentProfile = await prisma.user.findUnique({
@@ -349,8 +349,43 @@ const getStudentProfile = async (userId: string) => {
       id: userId,
     },
     include: {
-      reviews: true,
-      bookings: true,
+      bookings: {
+        include: {
+          review: {
+            include: {
+              booking: {
+                include: {
+                  subject: true,
+                },
+              },
+            },
+          },
+          subject: true,
+          timeSlot: true,
+          tutorProfile: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      },
+      tutorProfiles: true,
+      reviews: {
+        include: {
+          tutorProfile: {
+            include: {
+              user: true,
+            },
+          },
+          booking: {
+            include: {
+              student: true,
+              subject: true,
+              timeSlot: true,
+            },
+          },
+        },
+      },
     },
   });
 

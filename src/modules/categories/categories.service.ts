@@ -11,7 +11,6 @@ const getAllCategory = async () => {
       subjects: true,
     },
   });
-  console.log(result);
   return result;
 };
 
