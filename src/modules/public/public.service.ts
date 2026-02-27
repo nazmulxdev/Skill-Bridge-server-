@@ -169,7 +169,11 @@ const getTutorById = async (id: string) => {
       },
       availabilities: true,
       tutorTimeSlots: true,
-      reviews: true,
+      reviews: {
+        include: {
+          student: true,
+        },
+      },
       bookings: true,
     },
   });

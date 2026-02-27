@@ -20,6 +20,7 @@ const getAllUser = async () => {
             include: {
               student: true,
               subject: true,
+              review: true,
             },
           },
 
@@ -171,8 +172,34 @@ const featureTutor = async (id: string, isFeatured: boolean) => {
   return result;
 };
 
+const getAllBookings = async () => {
+  const result = await prisma.bookings.findMany({
+    include: {
+      tutorProfile: {
+        include: {
+          subjects: {
+            include: {
+              subject: true,
+            },
+          },
+          education: true,
+          availabilities: true,
+          tutorTimeSlots: true,
+          user: true,
+        },
+      },
+      student: true,
+      timeSlot: true,
+      subject: true,
+    },
+  });
+
+  return result;
+};
+
 export const adminService = {
   updateUserStatus,
   getAllUser,
   featureTutor,
+  getAllBookings,
 };

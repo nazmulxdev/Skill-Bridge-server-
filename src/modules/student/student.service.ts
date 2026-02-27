@@ -52,7 +52,7 @@ const createBooking = async (
     }
 
     if (slot.tutorProfile.user.status === UserStatus.BANNED) {
-      throw new AppError(403, "Tutor account is banned.", "ACCOUNT_BANNED", [
+      throw new AppError(403, "Tutor's account is banned.", "ACCOUNT_BANNED", [
         {
           field: "Authentication",
           message: "This tutor is banned. Please try another tutor.",

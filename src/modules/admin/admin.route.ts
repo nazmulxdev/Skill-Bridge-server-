@@ -6,6 +6,12 @@ const router = Router();
 
 router.get("/users", authMiddleware("ADMIN"), adminController.getAllUser);
 
+router.get(
+  "/bookings",
+  authMiddleware("ADMIN"),
+  adminController.getAllBookings,
+);
+
 router.patch("/users/:id", authMiddleware("ADMIN"), adminController.updateUser);
 
 router.patch(

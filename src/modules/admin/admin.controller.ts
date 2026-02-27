@@ -82,8 +82,20 @@ const featureTutor = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllBookings = catchAsync(async (req: Request, res: Response) => {
+  const result = await adminService.getAllBookings();
+
+  return AppResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "All bookings retrieve successfully.",
+    data: result,
+  });
+});
+
 export const adminController = {
   updateUser,
   getAllUser,
   featureTutor,
+  getAllBookings,
 };
