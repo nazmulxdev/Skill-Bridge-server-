@@ -8,8 +8,12 @@ export const auth = betterAuth({
     provider: "postgresql",
   }),
   secret: config.better_auth_secret,
-  baseURL: config.better_auth_url,
-  trustedOrigins: ["http://localhost:3000"],
+  baseURL: "https://skill-bridge-frontend-v3.vercel.app",
+  trustedOrigins: [
+    "https://skill-bridge-frontend-v3.vercel.app",
+    config.frontend_url!,
+    config.backend_url!,
+  ],
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,

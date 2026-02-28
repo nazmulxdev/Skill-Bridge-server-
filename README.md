@@ -16,9 +16,9 @@ Built with **Node.js, Express, TypeScript, Prisma, PostgreSQL, and Better Auth**
 
 # 🌐 Live Links
 
-[![Live Frontend](https://img.shields.io/badge/Live_Frontend-SkillBridge-blue?style=for-the-badge&logo=vercel)](https://skillbridge-frontend.vercel.app)
+[![Live Frontend](https://img.shields.io/badge/Live_Frontend-SkillBridge-blue?style=for-the-badge&logo=vercel)](https://skill-bridge-frontend-v3.vercel.app/)
 
-[![Live Backend API](https://img.shields.io/badge/Live_API-SkillBridge_Server-blueviolet?style=for-the-badge&logo=vercel)](https://skillbridge-backend.onrender.com)
+[![Live Backend API](https://img.shields.io/badge/Live_API-SkillBridge_Server-blueviolet?style=for-the-badge&logo=vercel)](https://skill-bridge-v3.vercel.app/)
 
 [![Frontend Repo](https://img.shields.io/badge/Frontend_Repo-GitHub-000?style=for-the-badge&logo=github)](https://github.com/nazmulxdev/Skill-Bridge-Frontend-)
 
@@ -110,6 +110,7 @@ BETTER_AUTH_SECRET=your_secret_key
 CALLBACK_URL=http://localhost:5000
 
 NODE_ENV=development
+
 ```
 
 ---

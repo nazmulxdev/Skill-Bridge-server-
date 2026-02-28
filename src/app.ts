@@ -23,7 +23,18 @@ app.use(
   }),
 );
 
+// app.use(
+//   cors({
+//     origin: [config.frontend_url!, config.backend_url!].filter(Boolean),
+//     credentials: true,
+//     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+//   }),
+// );
+
+// app.options("*", cors());
 // better auth api
+
 app.all(
   "/api/auth/*splat",
   async (req: Request, res: Response, next: NextFunction) => {
