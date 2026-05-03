@@ -221,6 +221,27 @@ model Review {
     createdAt DateTime @default(now())
 }
 
+// document embedding
+
+model DocumentEmbedding {
+    id          String                      @id @default(uuid())
+    chunkKey    String                      @unique
+    sourceType  String
+    sourceId    String
+    sourceLabel String?
+    content     String
+    metadata    Json?                       @default("{}")
+    embedding   Unsupported("vector(2048)")
+    isDeleted   Boolean                     @default(false)
+    deletedAt   DateTime?
+    createdAt   DateTime                    @default(now())
+    updatedAt   DateTime                    @updatedAt
+
+    @@index([sourceType])
+    @@index([isDeleted])
+    @@map("document_embeddings")
+}
+
 enum DayOfWeek {
     SUNDAY
     MONDAY

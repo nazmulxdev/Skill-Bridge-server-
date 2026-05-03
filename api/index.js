@@ -250,6 +250,27 @@ model Review {
   createdAt DateTime @default(now())
 }
 
+// document embedding
+
+model DocumentEmbedding {
+  id          String                      @id @default(uuid())
+  chunkKey    String                      @unique
+  sourceType  String
+  sourceId    String
+  sourceLabel String?
+  content     String
+  metadata    Json?                       @default("{}")
+  embedding   Unsupported("vector(2048)")
+  isDeleted   Boolean                     @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime                    @default(now())
+  updatedAt   DateTime                    @updatedAt
+
+  @@index([sourceType])
+  @@index([isDeleted])
+  @@map("document_embeddings")
+}
+
 enum DayOfWeek {
   SUNDAY
   MONDAY
@@ -284,7 +305,7 @@ enum UserStatus {
     "types": {}
   }
 };
-config.runtimeDataModel = JSON.parse('{"models":{"User":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"email","kind":"scalar","type":"String"},{"name":"emailVerified","kind":"scalar","type":"Boolean"},{"name":"image","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"role","kind":"enum","type":"Role"},{"name":"status","kind":"enum","type":"UserStatus"},{"name":"sessions","kind":"object","type":"Session","relationName":"SessionToUser"},{"name":"accounts","kind":"object","type":"Account","relationName":"AccountToUser"},{"name":"tutorProfiles","kind":"object","type":"TutorProfile","relationName":"TutorProfileToUser"},{"name":"bookings","kind":"object","type":"Bookings","relationName":"BookingsToUser"},{"name":"reviews","kind":"object","type":"Review","relationName":"ReviewToUser"}],"dbName":"user"},"Session":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"expiresAt","kind":"scalar","type":"DateTime"},{"name":"token","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"ipAddress","kind":"scalar","type":"String"},{"name":"userAgent","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"SessionToUser"}],"dbName":"session"},"Account":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"accountId","kind":"scalar","type":"String"},{"name":"providerId","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"AccountToUser"},{"name":"accessToken","kind":"scalar","type":"String"},{"name":"refreshToken","kind":"scalar","type":"String"},{"name":"idToken","kind":"scalar","type":"String"},{"name":"accessTokenExpiresAt","kind":"scalar","type":"DateTime"},{"name":"refreshTokenExpiresAt","kind":"scalar","type":"DateTime"},{"name":"scope","kind":"scalar","type":"String"},{"name":"password","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"account"},"Verification":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"identifier","kind":"scalar","type":"String"},{"name":"value","kind":"scalar","type":"String"},{"name":"expiresAt","kind":"scalar","type":"DateTime"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"verification"},"Bookings":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"studentId","kind":"scalar","type":"String"},{"name":"tutorProfileId","kind":"scalar","type":"String"},{"name":"subjectId","kind":"scalar","type":"String"},{"name":"timeSlotId","kind":"scalar","type":"String"},{"name":"booking_price","kind":"scalar","type":"Decimal"},{"name":"student","kind":"object","type":"User","relationName":"BookingsToUser"},{"name":"tutorProfile","kind":"object","type":"TutorProfile","relationName":"BookingsToTutorProfile"},{"name":"subject","kind":"object","type":"Subjects","relationName":"BookingsToSubjects"},{"name":"timeSlot","kind":"object","type":"TutorTimeSlot","relationName":"BookingsToTutorTimeSlot"},{"name":"status","kind":"enum","type":"BookingStatus"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"review","kind":"object","type":"Review","relationName":"BookingsToReview"}],"dbName":null},"TutorProfile":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"hourlyRate","kind":"scalar","type":"Decimal"},{"name":"isFeatured","kind":"scalar","type":"Boolean"},{"name":"user","kind":"object","type":"User","relationName":"TutorProfileToUser"},{"name":"subjects","kind":"object","type":"TutorSubject","relationName":"TutorProfileToTutorSubject"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"bookings","kind":"object","type":"Bookings","relationName":"BookingsToTutorProfile"},{"name":"reviews","kind":"object","type":"Review","relationName":"ReviewToTutorProfile"},{"name":"availabilities","kind":"object","type":"Availability","relationName":"AvailabilityToTutorProfile"},{"name":"education","kind":"object","type":"Education","relationName":"EducationToTutorProfile"},{"name":"tutorTimeSlots","kind":"object","type":"TutorTimeSlot","relationName":"TutorProfileToTutorTimeSlot"}],"dbName":null},"TutorSubject":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"subjectId","kind":"scalar","type":"String"},{"name":"subject","kind":"object","type":"Subjects","relationName":"SubjectsToTutorSubject"},{"name":"tutor_profileId","kind":"scalar","type":"String"},{"name":"tutorProfile","kind":"object","type":"TutorProfile","relationName":"TutorProfileToTutorSubject"}],"dbName":null},"Availability":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"tutorProfileId","kind":"scalar","type":"String"},{"name":"dayOfWeek","kind":"enum","type":"DayOfWeek"},{"name":"startTime","kind":"scalar","type":"String"},{"name":"endTime","kind":"scalar","type":"String"},{"name":"tutorProfile","kind":"object","type":"TutorProfile","relationName":"AvailabilityToTutorProfile"}],"dbName":null},"Education":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"tutorProfileId","kind":"scalar","type":"String"},{"name":"institute","kind":"scalar","type":"String"},{"name":"degree","kind":"scalar","type":"String"},{"name":"fieldOfStudy","kind":"scalar","type":"String"},{"name":"startYear","kind":"scalar","type":"Int"},{"name":"endYear","kind":"scalar","type":"Int"},{"name":"isCurrent","kind":"scalar","type":"Boolean"},{"name":"tutorProfile","kind":"object","type":"TutorProfile","relationName":"EducationToTutorProfile"}],"dbName":null},"TutorTimeSlot":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"tutorProfileId","kind":"scalar","type":"String"},{"name":"date","kind":"scalar","type":"DateTime"},{"name":"startTime","kind":"scalar","type":"String"},{"name":"endTime","kind":"scalar","type":"String"},{"name":"isBooked","kind":"scalar","type":"Boolean"},{"name":"tutorProfile","kind":"object","type":"TutorProfile","relationName":"TutorProfileToTutorTimeSlot"},{"name":"bookings","kind":"object","type":"Bookings","relationName":"BookingsToTutorTimeSlot"},{"name":"createdAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Categories":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"subjects","kind":"object","type":"Subjects","relationName":"CategoriesToSubjects"}],"dbName":null},"Subjects":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"category_id","kind":"scalar","type":"String"},{"name":"category","kind":"object","type":"Categories","relationName":"CategoriesToSubjects"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"tutorSubjects","kind":"object","type":"TutorSubject","relationName":"SubjectsToTutorSubject"},{"name":"bookings","kind":"object","type":"Bookings","relationName":"BookingsToSubjects"}],"dbName":null},"Review":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"bookingId","kind":"scalar","type":"String"},{"name":"studentId","kind":"scalar","type":"String"},{"name":"tutorProfileId","kind":"scalar","type":"String"},{"name":"rating","kind":"scalar","type":"Decimal"},{"name":"comment","kind":"scalar","type":"String"},{"name":"booking","kind":"object","type":"Bookings","relationName":"BookingsToReview"},{"name":"student","kind":"object","type":"User","relationName":"ReviewToUser"},{"name":"tutorProfile","kind":"object","type":"TutorProfile","relationName":"ReviewToTutorProfile"},{"name":"createdAt","kind":"scalar","type":"DateTime"}],"dbName":null}},"enums":{},"types":{}}');
+config.runtimeDataModel = JSON.parse('{"models":{"User":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"email","kind":"scalar","type":"String"},{"name":"emailVerified","kind":"scalar","type":"Boolean"},{"name":"image","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"role","kind":"enum","type":"Role"},{"name":"status","kind":"enum","type":"UserStatus"},{"name":"sessions","kind":"object","type":"Session","relationName":"SessionToUser"},{"name":"accounts","kind":"object","type":"Account","relationName":"AccountToUser"},{"name":"tutorProfiles","kind":"object","type":"TutorProfile","relationName":"TutorProfileToUser"},{"name":"bookings","kind":"object","type":"Bookings","relationName":"BookingsToUser"},{"name":"reviews","kind":"object","type":"Review","relationName":"ReviewToUser"}],"dbName":"user"},"Session":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"expiresAt","kind":"scalar","type":"DateTime"},{"name":"token","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"ipAddress","kind":"scalar","type":"String"},{"name":"userAgent","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"SessionToUser"}],"dbName":"session"},"Account":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"accountId","kind":"scalar","type":"String"},{"name":"providerId","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"AccountToUser"},{"name":"accessToken","kind":"scalar","type":"String"},{"name":"refreshToken","kind":"scalar","type":"String"},{"name":"idToken","kind":"scalar","type":"String"},{"name":"accessTokenExpiresAt","kind":"scalar","type":"DateTime"},{"name":"refreshTokenExpiresAt","kind":"scalar","type":"DateTime"},{"name":"scope","kind":"scalar","type":"String"},{"name":"password","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"account"},"Verification":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"identifier","kind":"scalar","type":"String"},{"name":"value","kind":"scalar","type":"String"},{"name":"expiresAt","kind":"scalar","type":"DateTime"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"verification"},"Bookings":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"studentId","kind":"scalar","type":"String"},{"name":"tutorProfileId","kind":"scalar","type":"String"},{"name":"subjectId","kind":"scalar","type":"String"},{"name":"timeSlotId","kind":"scalar","type":"String"},{"name":"booking_price","kind":"scalar","type":"Decimal"},{"name":"student","kind":"object","type":"User","relationName":"BookingsToUser"},{"name":"tutorProfile","kind":"object","type":"TutorProfile","relationName":"BookingsToTutorProfile"},{"name":"subject","kind":"object","type":"Subjects","relationName":"BookingsToSubjects"},{"name":"timeSlot","kind":"object","type":"TutorTimeSlot","relationName":"BookingsToTutorTimeSlot"},{"name":"status","kind":"enum","type":"BookingStatus"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"review","kind":"object","type":"Review","relationName":"BookingsToReview"}],"dbName":null},"TutorProfile":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"hourlyRate","kind":"scalar","type":"Decimal"},{"name":"isFeatured","kind":"scalar","type":"Boolean"},{"name":"user","kind":"object","type":"User","relationName":"TutorProfileToUser"},{"name":"subjects","kind":"object","type":"TutorSubject","relationName":"TutorProfileToTutorSubject"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"bookings","kind":"object","type":"Bookings","relationName":"BookingsToTutorProfile"},{"name":"reviews","kind":"object","type":"Review","relationName":"ReviewToTutorProfile"},{"name":"availabilities","kind":"object","type":"Availability","relationName":"AvailabilityToTutorProfile"},{"name":"education","kind":"object","type":"Education","relationName":"EducationToTutorProfile"},{"name":"tutorTimeSlots","kind":"object","type":"TutorTimeSlot","relationName":"TutorProfileToTutorTimeSlot"}],"dbName":null},"TutorSubject":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"subjectId","kind":"scalar","type":"String"},{"name":"subject","kind":"object","type":"Subjects","relationName":"SubjectsToTutorSubject"},{"name":"tutor_profileId","kind":"scalar","type":"String"},{"name":"tutorProfile","kind":"object","type":"TutorProfile","relationName":"TutorProfileToTutorSubject"}],"dbName":null},"Availability":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"tutorProfileId","kind":"scalar","type":"String"},{"name":"dayOfWeek","kind":"enum","type":"DayOfWeek"},{"name":"startTime","kind":"scalar","type":"String"},{"name":"endTime","kind":"scalar","type":"String"},{"name":"tutorProfile","kind":"object","type":"TutorProfile","relationName":"AvailabilityToTutorProfile"}],"dbName":null},"Education":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"tutorProfileId","kind":"scalar","type":"String"},{"name":"institute","kind":"scalar","type":"String"},{"name":"degree","kind":"scalar","type":"String"},{"name":"fieldOfStudy","kind":"scalar","type":"String"},{"name":"startYear","kind":"scalar","type":"Int"},{"name":"endYear","kind":"scalar","type":"Int"},{"name":"isCurrent","kind":"scalar","type":"Boolean"},{"name":"tutorProfile","kind":"object","type":"TutorProfile","relationName":"EducationToTutorProfile"}],"dbName":null},"TutorTimeSlot":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"tutorProfileId","kind":"scalar","type":"String"},{"name":"date","kind":"scalar","type":"DateTime"},{"name":"startTime","kind":"scalar","type":"String"},{"name":"endTime","kind":"scalar","type":"String"},{"name":"isBooked","kind":"scalar","type":"Boolean"},{"name":"tutorProfile","kind":"object","type":"TutorProfile","relationName":"TutorProfileToTutorTimeSlot"},{"name":"bookings","kind":"object","type":"Bookings","relationName":"BookingsToTutorTimeSlot"},{"name":"createdAt","kind":"scalar","type":"DateTime"}],"dbName":null},"Categories":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"subjects","kind":"object","type":"Subjects","relationName":"CategoriesToSubjects"}],"dbName":null},"Subjects":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"category_id","kind":"scalar","type":"String"},{"name":"category","kind":"object","type":"Categories","relationName":"CategoriesToSubjects"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"tutorSubjects","kind":"object","type":"TutorSubject","relationName":"SubjectsToTutorSubject"},{"name":"bookings","kind":"object","type":"Bookings","relationName":"BookingsToSubjects"}],"dbName":null},"Review":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"bookingId","kind":"scalar","type":"String"},{"name":"studentId","kind":"scalar","type":"String"},{"name":"tutorProfileId","kind":"scalar","type":"String"},{"name":"rating","kind":"scalar","type":"Decimal"},{"name":"comment","kind":"scalar","type":"String"},{"name":"booking","kind":"object","type":"Bookings","relationName":"BookingsToReview"},{"name":"student","kind":"object","type":"User","relationName":"ReviewToUser"},{"name":"tutorProfile","kind":"object","type":"TutorProfile","relationName":"ReviewToTutorProfile"},{"name":"createdAt","kind":"scalar","type":"DateTime"}],"dbName":null},"DocumentEmbedding":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"chunkKey","kind":"scalar","type":"String"},{"name":"sourceType","kind":"scalar","type":"String"},{"name":"sourceId","kind":"scalar","type":"String"},{"name":"sourceLabel","kind":"scalar","type":"String"},{"name":"content","kind":"scalar","type":"String"},{"name":"metadata","kind":"scalar","type":"Json"},{"name":"isDeleted","kind":"scalar","type":"Boolean"},{"name":"deletedAt","kind":"scalar","type":"DateTime"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"document_embeddings"}},"enums":{},"types":{}}');
 async function decodeBase64AsWasm(wasmBase64) {
   const { Buffer: Buffer2 } = await import("buffer");
   const wasmArray = Buffer2.from(wasmBase64, "base64");
@@ -312,10 +333,13 @@ __export(prismaNamespace_exports, {
   CategoriesScalarFieldEnum: () => CategoriesScalarFieldEnum,
   DbNull: () => DbNull2,
   Decimal: () => Decimal2,
+  DocumentEmbeddingScalarFieldEnum: () => DocumentEmbeddingScalarFieldEnum,
   EducationScalarFieldEnum: () => EducationScalarFieldEnum,
   JsonNull: () => JsonNull2,
+  JsonNullValueFilter: () => JsonNullValueFilter,
   ModelName: () => ModelName,
   NullTypes: () => NullTypes2,
+  NullableJsonNullValueInput: () => NullableJsonNullValueInput,
   NullsOrder: () => NullsOrder,
   PrismaClientInitializationError: () => PrismaClientInitializationError2,
   PrismaClientKnownRequestError: () => PrismaClientKnownRequestError2,
@@ -380,7 +404,8 @@ var ModelName = {
   TutorTimeSlot: "TutorTimeSlot",
   Categories: "Categories",
   Subjects: "Subjects",
-  Review: "Review"
+  Review: "Review",
+  DocumentEmbedding: "DocumentEmbedding"
 };
 var TransactionIsolationLevel = runtime2.makeStrictEnum({
   ReadUncommitted: "ReadUncommitted",
@@ -501,9 +526,26 @@ var ReviewScalarFieldEnum = {
   comment: "comment",
   createdAt: "createdAt"
 };
+var DocumentEmbeddingScalarFieldEnum = {
+  id: "id",
+  chunkKey: "chunkKey",
+  sourceType: "sourceType",
+  sourceId: "sourceId",
+  sourceLabel: "sourceLabel",
+  content: "content",
+  metadata: "metadata",
+  isDeleted: "isDeleted",
+  deletedAt: "deletedAt",
+  createdAt: "createdAt",
+  updatedAt: "updatedAt"
+};
 var SortOrder = {
   asc: "asc",
   desc: "desc"
+};
+var NullableJsonNullValueInput = {
+  DbNull: DbNull2,
+  JsonNull: JsonNull2
 };
 var QueryMode = {
   default: "default",
@@ -512,6 +554,11 @@ var QueryMode = {
 var NullsOrder = {
   first: "first",
   last: "last"
+};
+var JsonNullValueFilter = {
+  DbNull: DbNull2,
+  JsonNull: JsonNull2,
+  AnyNull: AnyNull2
 };
 var defineExtension = runtime2.Extensions.defineExtension;
 
@@ -533,7 +580,13 @@ var config2 = {
   better_auth_url: process.env.BETTER_AUTH_URL,
   frontend_url: process.env.FRONTEND_URL,
   backend_url: process.env.BACKEND_URL,
-  node_env: process.env.NODE_ENV
+  node_env: process.env.NODE_ENV,
+  openrouter_embedding_model: process.env.OPENROUTER_EMBEDING_MODEL,
+  openrouter_api_key: process.env.OPENROUTER_API_KEY,
+  openrouter_llm_model: process.env.OENROUTER_LLM_MODEL,
+  redis_url: process.env.REDIS_URL,
+  admin_email: process.env.ADMIN_EMAIL,
+  admin_password: process.env.ADMIN_PASSWORD
 };
 
 // src/lib/auth.ts
@@ -4525,6 +4578,481 @@ router6.get("/features", publicController.getAllFeaturedTutor);
 router6.get("/tutor/:id", publicController.getTutorById);
 var publicRoutes = router6;
 
+// src/modules/rag/rag.route.ts
+import { Router as Router7 } from "express";
+
+// src/modules/rag/embedding.service.ts
+var EmbeddingService = class {
+  apikey;
+  apiurl = "https://openrouter.ai/api/v1";
+  embeddingModel;
+  constructor() {
+    this.apikey = config2.openrouter_api_key || "";
+    this.embeddingModel = config2.openrouter_embedding_model;
+    if (!this.apikey) throw new AppErrors_default(500, "OpenRouter API key is required");
+  }
+  async generateEmbedding(content) {
+    try {
+      const response = await fetch(`${this.apiurl}/embeddings`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.apikey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ input: content, model: this.embeddingModel })
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new AppErrors_default(422, `Embedding failed: ${errorText}`);
+      }
+      const data = await response.json();
+      return data.data[0].embedding;
+    } catch (err) {
+      console.error("Embedding error:", err);
+      throw new AppErrors_default(500, err.message || "Failed to generate embedding");
+    }
+  }
+};
+
+// src/modules/rag/indexing.service.ts
+var toVectorLiteral = (vector) => `[${vector.join(",")}]`;
+var IndexingService = class {
+  embeddingService;
+  constructor() {
+    this.embeddingService = new EmbeddingService();
+  }
+  async indexDocument(chunkKey, sourceType, sourceId, content, sourceLabel, metadata) {
+    try {
+      const embedding = await this.embeddingService.generateEmbedding(content);
+      const vectorLiteral = toVectorLiteral(embedding);
+      await prisma.$executeRaw(prismaNamespace_exports.sql`
+        INSERT INTO "document_embeddings"
+        ("id", "chunkKey", "sourceType", "sourceId", "sourceLabel", "content", "metadata", "embedding", "updatedAt")
+        VALUES (
+          ${prismaNamespace_exports.raw("gen_random_uuid()::TEXT")}, ${chunkKey}, ${sourceType}, ${sourceId},
+          ${sourceLabel || null}, ${content}, ${JSON.stringify(metadata || {})}::jsonb,
+          CAST(${vectorLiteral} AS vector), NOW()
+        )
+        ON CONFLICT ("chunkKey") DO UPDATE SET
+          "content" = EXCLUDED."content", "metadata" = EXCLUDED."metadata",
+          "embedding" = EXCLUDED."embedding", "updatedAt" = NOW(), "isDeleted" = false
+      `);
+    } catch (error) {
+      console.error(`Index error: ${error.message}`);
+      throw new AppErrors_default(500, error.message);
+    }
+  }
+  async indexTutorsData() {
+    console.log("\u{1F4DA} Indexing tutors...");
+    const tutors = await prisma.user.findMany({
+      where: { role: "TUTOR", status: "UNBANNED" },
+      include: {
+        tutorProfiles: {
+          include: {
+            subjects: { include: { subject: { include: { category: true } } } },
+            education: true,
+            reviews: true
+          }
+        }
+      }
+    });
+    let count = 0;
+    for (const tutor of tutors) {
+      const profile = tutor.tutorProfiles;
+      if (!profile) continue;
+      const subjects = profile.subjects.map((s) => s.subject?.name).filter(Boolean).join(", ");
+      const education = profile.education.map((e) => `${e.degree} in ${e.fieldOfStudy} from ${e.institute}`).join("; ");
+      const avgRating = profile.reviews.length > 0 ? (profile.reviews.reduce(
+        (a, r) => a + r.rating,
+        0
+      ) / profile.reviews.length).toFixed(1) : "No ratings";
+      const content = `Tutor: ${tutor.name}
+Email: ${tutor.email}
+Hourly Rate: $${profile.hourlyRate}/hr
+Subjects: ${subjects}
+Education: ${education}
+Average Rating: ${avgRating}/5
+Featured: ${profile.isFeatured ? "Yes" : "No"}`;
+      await this.indexDocument(
+        `tutor-${tutor.id}`,
+        "TUTOR",
+        tutor.id,
+        content,
+        tutor.name,
+        {
+          tutorId: profile.id,
+          userId: tutor.id,
+          name: tutor.name,
+          hourlyRate: profile.hourlyRate,
+          subjects,
+          averageRating: avgRating,
+          isFeatured: profile.isFeatured
+        }
+      );
+      count++;
+    }
+    console.log(`\u2705 Indexed ${count} tutors`);
+    return { success: true, indexedCount: count };
+  }
+  async indexSubjectsData() {
+    console.log("\u{1F4DA} Indexing subjects...");
+    const subjects = await prisma.subjects.findMany({
+      include: { category: true }
+    });
+    let count = 0;
+    for (const subject of subjects) {
+      const content = `Subject: ${subject.name}
+Category: ${subject.category?.name || "Uncategorized"}
+Description: ${subject.category?.description || "No description"}`;
+      await this.indexDocument(
+        `subject-${subject.id}`,
+        "SUBJECT",
+        subject.id,
+        content,
+        subject.name,
+        {
+          subjectId: subject.id,
+          categoryId: subject.category_id
+        }
+      );
+      count++;
+    }
+    console.log(`\u2705 Indexed ${count} subjects`);
+    return { success: true, indexedCount: count };
+  }
+  async indexFAQsData() {
+    console.log("\u{1F4DA} Indexing FAQs...");
+    const faqs = [
+      {
+        id: "faq-1",
+        q: "How do I book a session?",
+        a: "Browse tutors, select one, pick a time slot, and confirm. First session is free!"
+      },
+      {
+        id: "faq-2",
+        q: "How do I become a tutor?",
+        a: "Register as Tutor, complete your profile with hourly rate, education, subjects, and availability."
+      },
+      {
+        id: "faq-3",
+        q: "How does pricing work?",
+        a: "Tutors set rates ($15-$100/hr). Pay after session. Accept credit/debit cards."
+      },
+      {
+        id: "faq-4",
+        q: "Can I cancel?",
+        a: "Yes, cancel from Dashboard > Bookings. Free up to 24h before."
+      },
+      {
+        id: "faq-5",
+        q: "What subjects?",
+        a: "50+ subjects: Math, Physics, Chemistry, Biology, English, Programming, Data Science, and more!"
+      },
+      {
+        id: "faq-6",
+        q: "Refunds?",
+        a: "Request refund within 24h if unsatisfied. Satisfaction guaranteed."
+      },
+      {
+        id: "faq-7",
+        q: "Tutor vetting?",
+        a: "Background checks, ID verification, qualification validation. <5% accepted."
+      }
+    ];
+    let count = 0;
+    for (const faq of faqs) {
+      const content = `Q: ${faq.q}
+A: ${faq.a}`;
+      await this.indexDocument(`faq-${faq.id}`, "FAQ", faq.id, content, faq.q, {
+        question: faq.q
+      });
+      count++;
+    }
+    console.log(`\u2705 Indexed ${count} FAQs`);
+    return { success: true, indexedCount: count };
+  }
+  async indexAllData() {
+    const tutors = await this.indexTutorsData();
+    const subjects = await this.indexSubjectsData();
+    const faqs = await this.indexFAQsData();
+    return {
+      tutors: tutors.indexedCount,
+      subjects: subjects.indexedCount,
+      faqs: faqs.indexedCount,
+      total: tutors.indexedCount + subjects.indexedCount + faqs.indexedCount
+    };
+  }
+};
+
+// src/modules/rag/llm.service.ts
+var LLMService = class {
+  apikey;
+  apiurl = "https://openrouter.ai/api/v1";
+  model;
+  constructor() {
+    this.apikey = config2.openrouter_api_key || "";
+    this.model = config2.openrouter_llm_model;
+    if (!this.apikey) throw new AppErrors_default(500, "OpenRouter API key is required");
+  }
+  async generateResponse(prompt, context) {
+    try {
+      let fullPrompt = context.length > 0 ? `Context information:
+${context.join("\n")}
+
+Question: ${prompt}
+
+Answer based on context. If not found, say "I don't have that information." Be concise and helpful.` : prompt;
+      const response = await fetch(`${this.apiurl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.apikey}`,
+          "Content-Type": "application/json",
+          "X-Title": "SkillBridge"
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages: [
+            {
+              role: "system",
+              content: "You are SkillBridge AI assistant. Help with tutors, subjects, booking, pricing."
+            },
+            { role: "user", content: fullPrompt }
+          ],
+          temperature: 0.3,
+          max_tokens: 500
+        })
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new AppErrors_default(response.status, `LLM error: ${errorText}`);
+      }
+      const data = await response.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      console.error("LLM error:", error);
+      throw new AppErrors_default(500, "Failed to generate response");
+    }
+  }
+};
+
+// src/modules/rag/rag.service.ts
+var toVectorLiteral2 = (vector) => `[${vector.join(",")}]`;
+var RagService = class {
+  embeddingService;
+  llmService;
+  indexingService;
+  constructor() {
+    this.embeddingService = new EmbeddingService();
+    this.llmService = new LLMService();
+    this.indexingService = new IndexingService();
+  }
+  async ingestAllData() {
+    return this.indexingService.indexAllData();
+  }
+  async retrieveRelevantDocuments(query, limit = 5, sourceType) {
+    try {
+      const embedding = await this.embeddingService.generateEmbedding(query);
+      const vectorLiteral = toVectorLiteral2(embedding);
+      const result = await prisma.$queryRaw(prismaNamespace_exports.sql`
+        SELECT "id", "chunkKey", "sourceType", "sourceId", "sourceLabel", "content", "metadata", "createdAt",
+        1 - (embedding <=> CAST(${vectorLiteral} AS vector)) AS similarity
+        FROM "document_embeddings"
+        WHERE "isDeleted" = false
+        ${sourceType ? prismaNamespace_exports.sql` AND "sourceType" = ${sourceType}` : prismaNamespace_exports.empty}
+        ORDER BY embedding <=> CAST(${vectorLiteral} AS vector)
+        LIMIT ${limit}
+      `);
+      return result;
+    } catch (error) {
+      console.error(`Retrieve error: ${error.message}`);
+      throw new AppErrors_default(500, error.message);
+    }
+  }
+  async generateAnswer(query, limit = 5, sourceType) {
+    try {
+      const relevantDocs = await this.retrieveRelevantDocuments(
+        query,
+        limit,
+        sourceType
+      );
+      const context = relevantDocs.filter((d) => d.content).map((d) => d.content);
+      const answer = await this.llmService.generateResponse(query, context);
+      return {
+        answer,
+        sources: relevantDocs.map((doc) => ({
+          id: doc.id,
+          sourceType: doc.sourceType,
+          sourceLabel: doc.sourceLabel,
+          similarity: doc.similarity
+        })),
+        contextUsed: context.length > 0
+      };
+    } catch (error) {
+      console.error(`Generate error: ${error.message}`);
+      throw new AppErrors_default(500, error.message);
+    }
+  }
+};
+
+// src/lib/redis.ts
+import { createClient } from "redis";
+var RedisService = class {
+  client = null;
+  isConnected = false;
+  async connect() {
+    try {
+      const redisUrl = config2.redis_url;
+      this.client = createClient({ url: redisUrl });
+      this.client.on("error", (error) => {
+        console.error("Redis Error:", error);
+        this.isConnected = false;
+      });
+      this.client.on("connect", () => {
+        this.isConnected = true;
+        console.log("Redis connected");
+      });
+      this.client.on("ready", () => {
+        this.isConnected = true;
+        console.log("Redis ready");
+      });
+      this.client.on("reconnecting", () => {
+        this.isConnected = false;
+        console.log("Redis reconnecting");
+      });
+      this.client.on("end", () => {
+        this.isConnected = false;
+        console.log("Redis disconnected");
+      });
+      await this.client.connect();
+      this.isConnected = true;
+      console.log("Redis connected successfully");
+    } catch (error) {
+      this.isConnected = false;
+      console.error("Redis connection error:", error);
+    }
+  }
+  // Ensure redis connection is established and client is ready
+  ensureConnection() {
+    if (!this.client) {
+      throw new AppErrors_default(
+        500,
+        "Redis is not connected",
+        "REDIS_CONNECTION_ERROR"
+      );
+    }
+    if (!this.isConnected) {
+      throw new AppErrors_default(500, "Redis is not ready to use", "REDIS_NOT_READY");
+    }
+    return this.client;
+  }
+  async get(key) {
+    try {
+      const client = this.ensureConnection();
+      return await client.get(key);
+    } catch (error) {
+      console.error("Error getting data from Redis:", error);
+      return null;
+    }
+  }
+  async set(key, value, ttl) {
+    try {
+      const client = this.ensureConnection();
+      const stringValue = typeof value === "string" ? value : JSON.stringify(value);
+      await client.set(key, stringValue, ttl ? { EX: ttl } : void 0);
+    } catch (error) {
+      console.error("Error setting data in Redis:", error);
+    }
+  }
+  async update(key, value, ttl) {
+    try {
+      const client = this.ensureConnection();
+      const stringValue = typeof value === "string" ? value : JSON.stringify(value);
+      await client.set(key, stringValue, ttl ? { EX: ttl } : void 0);
+    } catch (error) {
+      console.error("Error updating data in Redis:", error);
+    }
+  }
+  async delete(key) {
+    try {
+      const client = this.ensureConnection();
+      await client.del(key);
+    } catch (error) {
+      console.error("Error deleting data from Redis:", error);
+    }
+  }
+  async isAvailable() {
+    try {
+      const client = this.ensureConnection();
+      await client.ping();
+      return true;
+    } catch (error) {
+      console.error("Error checking Redis availability:", error);
+      return false;
+    }
+  }
+  async disconnect() {
+    try {
+      if (this.client && this.isConnected) {
+        await this.client.quit();
+        this.isConnected = false;
+        console.log("Redis disconnected");
+      }
+    } catch (error) {
+      console.error("Error disconnecting from Redis:", error);
+    }
+  }
+};
+var redisService = new RedisService();
+
+// src/modules/rag/rag.controller.ts
+var ragService = new RagService();
+var ingestData = catchAsync_default(async (req, res) => {
+  const result = await ragService.ingestAllData();
+  AppResponse_default(res, {
+    message: "All data indexed",
+    statusCode: 200,
+    success: true,
+    data: result
+  });
+});
+var queryRag = catchAsync_default(async (req, res) => {
+  const { query, limit, sourceType } = req.body;
+  if (!query) throw new AppErrors_default(400, "Query is required");
+  const cacheKey = `rag:query:${query}:${limit ?? 5}:${sourceType || "all"}`;
+  try {
+    const cacheData = await redisService.get(cacheKey);
+    if (cacheData) {
+      AppResponse_default(res, {
+        message: "Query successful from cache",
+        statusCode: 200,
+        success: true,
+        data: JSON.parse(cacheData)
+      });
+      return;
+    }
+  } catch (error) {
+    console.warn();
+  }
+  const result = await ragService.generateAnswer(query, limit ?? 5, sourceType);
+  try {
+    await redisService.set(cacheKey, JSON.stringify(result), 600);
+  } catch (error) {
+    console.error("Error setting data in Redis", error);
+  }
+  AppResponse_default(res, {
+    message: "Query successful",
+    statusCode: 200,
+    success: true,
+    data: result
+  });
+});
+
+// src/modules/rag/rag.route.ts
+var router7 = Router7();
+router7.post("/ingest", ingestData);
+router7.post("/query", queryRag);
+var ragRoutes = router7;
+
 // src/app.ts
 var app = express();
 app.use(express.json());
@@ -4550,6 +5078,7 @@ app.use("/api/tutors", tutorRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/subjects", subjectsRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/rag", ragRoutes);
 app.get("/", (req, res) => {
   res.send("Welcome to the skill bridge server.");
 });

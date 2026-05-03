@@ -12,6 +12,7 @@ import { categoryRoutes } from "./modules/categories/categories.route";
 import { subjectsRoutes } from "./modules/subjects/subjects.route";
 import { studentRoutes } from "./modules/student/student.route";
 import { publicRoutes } from "./modules/public/public.route";
+import { ragRoutes } from "./modules/rag/rag.route";
 
 const app = express();
 app.use(express.json());
@@ -22,18 +23,6 @@ app.use(
     credentials: true,
   }),
 );
-
-// app.use(
-//   cors({
-//     origin: [config.frontend_url!, config.backend_url!].filter(Boolean),
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-//     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-//   }),
-// );
-
-// app.options("*", cors());
-// better auth api
 
 app.all(
   "/api/auth/*splat",
@@ -69,6 +58,10 @@ app.use("/api/subjects", subjectsRoutes);
 // admin api
 
 app.use("/api/admin", adminRoutes);
+
+// rag api
+
+app.use("/api/rag", ragRoutes);
 
 // home route
 app.get("/", (req: Request, res: Response) => {
